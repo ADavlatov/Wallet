@@ -1,6 +1,7 @@
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Domain.Entities;
+using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Infrastructure.Contexts;
 
@@ -16,9 +17,9 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
         return Result.Ok();
     }
 
-    public async Task<Result<List<Category>>> GetAllCategoriesByUserId(Guid userId, CancellationToken cancellationToken)
+    public async Task<Result<List<Category>>> GetAllCategoriesByTransactionType(Guid userId, TransactionTypes transactionType, CancellationToken cancellationToken)
     {
-        var categories = await db.Categories.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
+        var categories = await db.Categories.Where(x => x.UserId == userId && x.Type == transactionType).ToListAsync(cancellationToken);
         if (!categories.Any())
         {
             return Result.Fail("No categories found");
