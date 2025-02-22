@@ -1,37 +1,67 @@
-﻿using Wallet.Server.Domain.Entities;
+﻿using FluentResults;
+using Microsoft.EntityFrameworkCore;
+using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Infrastructure.Contexts;
 
 namespace Wallet.Server.Infrastructure.Repositories;
 
-public class UsersRepository : IUsersRepository
+public class UsersRepository(WalletContext db) : IUsersRepository
 {
-    public Task<IResult> AddUser(User user, CancellationToken cancellationToken)
+    public async Task<Result> AddUser(User user, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await db.Users.AddAsync(user, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Result.Ok();
     }
 
-    public Task<IResult> GetAllUsers(CancellationToken cancellationToken)
+    public async Task<Result<List<User>>> GetAllUsers(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var users = await db.Users.ToListAsync(cancellationToken);
+        if (!users.Any())
+        {
+            return Result.Fail("Users not found");
+        }
+        
+        return Result.Ok(users);
     }
 
-    public Task<IResult> GetUserById(Guid id, CancellationToken cancellationToken)
+    public async Task<Result<User>> GetUserById(Guid id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var user = await db.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (user is null)
+        {
+            return Result.Fail("User not found");
+        }
+        
+        return Result.Ok(user);
     }
 
-    public Task<IResult> GetUserByUsername(string username, CancellationToken cancellationToken)
+    public async Task<Result<User>> GetUserByUsername(string username, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var user = await db.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        if (user is null)
+        {
+            return Result.Fail("User not found");
+        }
+        
+        return Result.Ok(user);
     }
 
-    public Task<IResult> UpdateUser(User user, CancellationToken cancellationToken)
+    public async Task<Result> UpdateUser(User updatedUser, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        db.Users.Update(updatedUser);
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Result.Ok();
     }
 
-    public Task<IResult> DeleteUser(User user, CancellationToken cancellationToken)
+    public async Task<Result> DeleteUser(User user, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        db.Users.Remove(user);
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Result.Ok();
     }
 }
