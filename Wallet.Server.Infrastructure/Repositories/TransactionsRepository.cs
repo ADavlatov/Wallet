@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Interfaces;

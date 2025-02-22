@@ -1,6 +1,6 @@
-﻿namespace Wallet.Server.Domain.Interfaces;
+namespace Wallet.Server.Domain.Interfaces;
 
-public class ICategoriesService
+public interface ICategoriesService
 {
     
 }

@@ -1,4 +1,4 @@
-﻿namespace Wallet.Server.Domain.Interfaces;
+namespace Wallet.Server.Domain.Interfaces;
 
 public interface ITransactionsService
 {

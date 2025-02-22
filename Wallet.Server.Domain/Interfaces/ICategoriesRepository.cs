@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using Wallet.Server.Domain.Entities;
 
 namespace Wallet.Server.Domain.Interfaces;

@@ -1,4 +1,4 @@
-﻿namespace Wallet.Server.Domain.Entities;
+namespace Wallet.Server.Domain.Entities;
 
 public class Goal(User user, string name, decimal amount, DateOnly? deadline = null)
 {

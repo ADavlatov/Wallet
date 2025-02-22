@@ -1,4 +1,4 @@
-﻿using Wallet.Server.Domain.Enums;
+using Wallet.Server.Domain.Enums;
 
 namespace Wallet.Server.Domain.Entities;
 

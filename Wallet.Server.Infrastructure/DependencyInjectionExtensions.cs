@@ -1,4 +1,6 @@
-﻿namespace Wallet.Server.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Wallet.Server.Infrastructure;
 
 public static class DependencyInjectionExtensions
 {

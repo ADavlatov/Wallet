@@ -1,4 +1,4 @@
-﻿namespace Wallet.Server.Domain.Enums;
+namespace Wallet.Server.Domain.Enums;
 
 public enum TransactionTypes
 {
