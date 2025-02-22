@@ -9,6 +9,6 @@ public interface ICategoriesRepository
     Task<Result<List<Category>>> GetAllCategoriesByUserId(Guid userId, CancellationToken cancellationToken);
     Task<Result<Category>> GetCategoryById(Guid id, CancellationToken cancellationToken);
     Task<Result<Category>> GetCategoryByName(Guid userId, string name, CancellationToken cancellationToken);
-    Task<Result> UpdateCategory(Category category, CancellationToken cancellationToken);
+    Task<Result> UpdateCategory(Category updatedCategory, CancellationToken cancellationToken);
     Task<Result> DeleteCategory(Category category, CancellationToken cancellationToken);
 }
