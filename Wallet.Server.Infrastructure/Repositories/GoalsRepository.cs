@@ -1,37 +1,67 @@
-﻿using Wallet.Server.Domain.Entities;
+﻿using FluentResults;
+using Microsoft.EntityFrameworkCore;
+using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Infrastructure.Contexts;
 
 namespace Wallet.Server.Infrastructure.Repositories;
 
-public class GoalsRepository : IGoalsRepository
+public class GoalsRepository(WalletContext db) : IGoalsRepository
 {
-    public Task<IResult> AddGoal(Goal goal, CancellationToken cancellationToken)
+    public async Task<Result> AddGoal(Goal goal, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        await db.Goals.AddAsync(goal, cancellationToken);
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Result.Ok();
     }
 
-    public Task<IResult> GetAllGoalsByUserId(Guid userId, CancellationToken cancellationToken)
+    public async Task<Result<List<Goal>>> GetAllGoalsByUserId(Guid userId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var goals = await db.Goals.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
+        if (!goals.Any())
+        {
+            return Result.Fail("goals not found");
+        }
+
+        return Result.Ok();
     }
 
-    public Task<IResult> GetGoalById(Guid id, CancellationToken cancellationToken)
+    public async Task<Result<Goal>> GetGoalById(Guid id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var goal = await db.Goals.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (goal is null)
+        {
+            return Result.Fail("goal not found");
+        }
+        
+        return Result.Ok(goal);
     }
 
-    public Task<IResult> GetGoalByName(string name, CancellationToken cancellationToken)
+    public async Task<Result<Goal>> GetGoalByName(Guid userId, string name, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var goal = await db.Goals.FirstOrDefaultAsync(x => x.UserId == userId && x.Name == name, cancellationToken);
+        if (goal is null)
+        {
+            return Result.Fail("goal not found");
+        }
+        
+        return Result.Ok(goal);
     }
 
-    public Task<IResult> UpdateGoal(Goal goal, CancellationToken cancellationToken)
+    public async Task<Result> UpdateGoal(Goal updatedGoal, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        db.Goals.Update(updatedGoal);
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Result.Ok();
     }
 
-    public Task<IResult> DeleteGoal(Goal goal, CancellationToken cancellationToken)
+    public async Task<Result> DeleteGoal(Goal goal, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        db.Goals.Remove(goal);
+        await db.SaveChangesAsync(cancellationToken);
+        
+        return Result.Ok();
     }
 }
