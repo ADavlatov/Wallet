@@ -1,9 +1,10 @@
 using System.Reflection;
 using Microsoft.OpenApi.Models;
+using Wallet.Server.Presentation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(x => x.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(x =>
 {
