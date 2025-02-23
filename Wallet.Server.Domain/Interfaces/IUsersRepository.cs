@@ -5,10 +5,10 @@ namespace Wallet.Server.Domain.Interfaces;
 
 public interface IUsersRepository
 {
-    Task<Result> AddUser(User user, CancellationToken cancellationToken);
-    Task<Result<List<User>>> GetAllUsers(CancellationToken cancellationToken);
-    Task<Result<User>> GetUserById(Guid id, CancellationToken cancellationToken);
-    Task<Result<User>> GetUserByUsername(string username, CancellationToken cancellationToken);
-    Task<Result> UpdateUser(User updatedUser, CancellationToken cancellationToken);
-    Task<Result> DeleteUser(User user, CancellationToken cancellationToken);
+    Task AddUser(User user, CancellationToken cancellationToken);
+    Task<List<User>> GetAllUsers(CancellationToken cancellationToken);
+    Task<User> GetUserById(Guid id, CancellationToken cancellationToken);
+    Task<User> GetUserByUsername(string username, CancellationToken cancellationToken);
+    Task UpdateUser(User updatedUser, CancellationToken cancellationToken);
+    Task DeleteUser(User user, CancellationToken cancellationToken);
 }
