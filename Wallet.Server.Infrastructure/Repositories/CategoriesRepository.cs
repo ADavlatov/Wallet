@@ -26,6 +26,17 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
         return true;
     }
 
+    public async Task<List<Category>> GetAllCategoriesByUserId(Guid userId, CancellationToken cancellationToken)
+    {
+        var categories = await db.Categories.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
+        if (!categories.Any())
+        {
+            throw new NotFoundException("Categories not found");
+        }
+
+        return categories;
+    }
+
     public async Task<List<Category>> GetAllCategoriesByTransactionType(Guid userId, TransactionTypes transactionType, CancellationToken cancellationToken)
     {
         var categories = await db.Categories.Where(x => x.UserId == userId && x.Type == transactionType).ToListAsync(cancellationToken);
