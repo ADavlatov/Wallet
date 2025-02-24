@@ -1,4 +1,3 @@
-using FluentResults;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 
