@@ -6,6 +6,7 @@ namespace Wallet.Server.Domain.Interfaces;
 public interface ICategoriesRepository
 {
     Task AddCategory(Category category, CancellationToken cancellationToken);
+    Task<bool> IsCategoryAlreadyExists(Guid userId, string name, TransactionTypes type, CancellationToken cancellationToken);
     Task<List<Category>> GetAllCategoriesByTransactionType(Guid userId, TransactionTypes transactionType, CancellationToken cancellationToken);
     Task<Category> GetCategoryById(Guid id, CancellationToken cancellationToken);
     Task<Category> GetCategoryByName(Guid userId, string name, CancellationToken cancellationToken);
