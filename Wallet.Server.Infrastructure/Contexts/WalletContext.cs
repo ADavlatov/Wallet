@@ -33,7 +33,6 @@ public sealed class WalletContext : DbContext
         {
             builder.HasKey(x => x.Id);
             builder.HasMany(x => x.Categories).WithOne(x => x.User).HasForeignKey(x => x.UserId);
-            builder.HasMany(x => x.Transactions).WithOne(x => x.User).HasForeignKey(x => x.UserId);
             builder.HasMany(x => x.Goals).WithOne(x => x.User).HasForeignKey(x => x.UserId);
         }
     }
@@ -43,7 +42,6 @@ public sealed class WalletContext : DbContext
         public void Configure(EntityTypeBuilder<Transaction> builder)
         {
             builder.HasKey(x => x.Id);
-            builder.HasOne(x => x.User).WithMany(x => x.Transactions).HasForeignKey(x => x.UserId);
             builder.HasOne(x => x.Category).WithMany(x => x.Transactions).HasForeignKey(x => x.CategoryId);
         }
     }
