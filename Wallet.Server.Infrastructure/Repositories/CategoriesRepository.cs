@@ -15,6 +15,17 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<bool> IsCategoryAlreadyExists(Guid userId, string name, TransactionTypes type, CancellationToken cancellationToken)
+    {
+        var category = await db.Categories.FirstOrDefaultAsync(x => x.UserId == userId && x.Name == name && x.Type == type, cancellationToken);
+        if (category is null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     public async Task<List<Category>> GetAllCategoriesByTransactionType(Guid userId, TransactionTypes transactionType, CancellationToken cancellationToken)
     {
         var categories = await db.Categories.Where(x => x.UserId == userId && x.Type == transactionType).ToListAsync(cancellationToken);

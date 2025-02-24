@@ -14,6 +14,17 @@ public class UsersRepository(WalletContext db) : IUsersRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<bool> IsUserExists(string username, CancellationToken cancellationToken)
+    {
+        var user = await db.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        if (user is null)
+        {
+            return false;
+        }
+        
+        return true;
+    }
+
     public async Task<List<User>> GetAllUsers(CancellationToken cancellationToken)
     {
         var users = await db.Users.ToListAsync(cancellationToken);

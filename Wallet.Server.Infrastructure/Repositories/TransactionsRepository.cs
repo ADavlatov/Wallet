@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Domain.Entities;
+using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Infrastructure.Contexts;
@@ -14,9 +15,20 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<Transaction>> GetAllTransactionsByUserId(Guid userId, CancellationToken cancellationToken)
+    public async Task<List<Transaction>> GetAllTransactionsByType(Guid categoryId, TransactionTypes type, CancellationToken cancellationToken)
     {
-        var transactions = await db.Transactions.Where(x => x.UserId == userId).ToListAsync(cancellationToken);
+        var transactions = await db.Transactions.Where(x => x.CategoryId == categoryId).ToListAsync(cancellationToken);
+        if (!transactions.Any())
+        {
+            throw new NotFoundException("Transactions not found");
+        }
+        
+        return transactions;
+    }
+
+    public async Task<List<Transaction>> GetAllTransactionsByCategory(Guid categoryId, CancellationToken cancellationToken)
+    {
+        var transactions = await db.Transactions.Where(x => x.CategoryId == categoryId).ToListAsync(cancellationToken);
         if (!transactions.Any())
         {
             throw new NotFoundException("Transactions not found");
