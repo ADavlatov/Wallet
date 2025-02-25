@@ -4,6 +4,9 @@ using Wallet.Server.Presentation;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Wallet.Server.Infrastructure.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
+Wallet.Server.Application.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
+
 builder.Services.AddControllers(x => x.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(x =>
