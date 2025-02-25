@@ -9,7 +9,7 @@ public class TransactionsService(
     ICategoriesRepository categoriesRepository,
     IUsersRepository usersRepository) : ITransactionsService
 {
-    public async Task AddTransaction(Guid userId, Guid categoryId, string name, decimal amount, DateTime date,
+    public async Task AddTransaction(Guid userId, Guid categoryId, string? name, decimal amount, DateTime date,
         TransactionTypes type, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetUserById(userId, cancellationToken);

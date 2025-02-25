@@ -19,7 +19,12 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
         await categoriesRepository.AddCategory(new Category(user, name, type), cancellationToken);
     }
 
-    public async Task<List<Category>> GetCategories(Guid userId, TransactionTypes type, CancellationToken cancellationToken)
+    public async Task<List<Category>> GetCategoriesByUser(Guid userId, CancellationToken cancellationToken)
+    {
+        return await categoriesRepository.GetAllCategoriesByUserId(userId, cancellationToken);
+    }
+
+    public async Task<List<Category>> GetCategoriesByType(Guid userId, TransactionTypes type, CancellationToken cancellationToken)
     {
         return await categoriesRepository.GetAllCategoriesByTransactionType(userId, type, cancellationToken);
     }
