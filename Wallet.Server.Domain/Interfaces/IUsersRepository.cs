@@ -4,7 +4,7 @@ namespace Wallet.Server.Domain.Interfaces;
 
 public interface IUsersRepository
 {
-    Task AddUser(User user, CancellationToken cancellationToken);
+    Task<User> AddUser(User user, CancellationToken cancellationToken);
     Task<bool> IsUserExists(string username, CancellationToken cancellationToken);
     Task<List<User>> GetAllUsers(CancellationToken cancellationToken);
     Task<User> GetUserById(Guid id, CancellationToken cancellationToken);

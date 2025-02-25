@@ -8,10 +8,11 @@ namespace Wallet.Server.Infrastructure.Repositories;
 
 public class UsersRepository(WalletContext db) : IUsersRepository
 {
-    public async Task AddUser(User user, CancellationToken cancellationToken)
+    public async Task<User> AddUser(User user, CancellationToken cancellationToken)
     {
         await db.Users.AddAsync(user, cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
+        return user;
     }
 
     public async Task<bool> IsUserExists(string username, CancellationToken cancellationToken)
