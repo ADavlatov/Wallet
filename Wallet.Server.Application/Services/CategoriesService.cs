@@ -34,6 +34,11 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
         return await categoriesRepository.GetCategoryByName(userId, name, cancellationToken);
     }
 
+    public async Task<Category> GetCategoryById(Guid id, CancellationToken cancellationToken)
+    {
+        return await categoriesRepository.GetCategoryById(id, cancellationToken);
+    }
+
     public async Task UpdateCategory(Guid categoryId, string? name, TransactionTypes? type, CancellationToken cancellationToken)
     {
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
