@@ -15,8 +15,8 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
         {
             throw new AlreadyExistsException("Category with this name and type already exists");
         }
-        
-        await categoriesRepository.AddCategory(new Category(user, name, type), cancellationToken);
+
+        await categoriesRepository.AddCategory(new Category(name, type) { User = user, UserId = user.Id }, cancellationToken);
     }
 
     public async Task<List<Category>> GetCategoriesByUser(Guid userId, CancellationToken cancellationToken)
@@ -42,10 +42,11 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
     public async Task UpdateCategory(Guid categoryId, string? name, TransactionTypes? type, CancellationToken cancellationToken)
     {
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
-        
+
+        //TODO учитывать пустые строки
         category.Name = name ?? category.Name;
         category.Type = type ?? category.Type;
-        
+
         await categoriesRepository.UpdateCategory(category, cancellationToken);
     }
 

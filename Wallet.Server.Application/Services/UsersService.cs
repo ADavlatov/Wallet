@@ -11,7 +11,7 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
 {
     private const int AccessTokenLifetime = 1;
     private const int RefreshTokenLifetime = 15;
-    
+
     public async Task<(string, string)> SignIn(string username, string password, CancellationToken cancellationToken)
     {
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
@@ -19,12 +19,13 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
         {
             throw new AlreadyExistsException("User with this username already exists");
         }
-        
+
         var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
         var user = await usersRepository.AddUser(new User(username, passwordHash, passwordSalt), cancellationToken);
+        var accessToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), AccessTokenLifetime));
+        var refreshToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), RefreshTokenLifetime));
         
-        return (TokenHelper.GetJwtToken(username, user.Id, AccessTokenLifetime).ToString(),
-            TokenHelper.GetJwtToken(username, user.Id, RefreshTokenLifetime).ToString());
+        return (accessToken, refreshToken);
     }
 
     public async Task<(string, string)> LogIn(string username, string password, CancellationToken cancellationToken)
@@ -32,32 +33,36 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
         if (!isUserExists)
         {
-            throw new AlreadyExistsException("User does not exist");
+            throw new NotFoundException("User does not exist");
         }
-        
+
         var user = await usersRepository.GetUserByUsername(username, cancellationToken);
         if (!PasswordHashHelper.ValidateHash(password, user.PasswordSalt, user.Password))
         {
             throw new AuthenticationException("Wrong password");
         }
+
+        var accessToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), AccessTokenLifetime));
+        var refreshToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), RefreshTokenLifetime));
         
-        return (TokenHelper.GetJwtToken(username, user.Id, AccessTokenLifetime).ToString(),
-            TokenHelper.GetJwtToken(username, user.Id, RefreshTokenLifetime).ToString());
+        return (accessToken ?? throw new Domain.Exceptions.AuthenticationException(),
+            refreshToken ?? throw new Domain.Exceptions.AuthenticationException());
     }
 
     public async Task<(string, string)> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
     {
         var token = new JwtSecurityTokenHandler().ReadJwtToken(refreshToken);
-        var username = token.Claims.FirstOrDefault(x => x.Type == "Name")?.Value;
-        var userId = token.Claims.FirstOrDefault(x => x.Type == "Name")?.Value;
-        var isValidId = Guid.TryParse(userId, out var id);
-        if (userId == null || username == null || !isValidId)
+        var userId = token.Claims.First().Value;
+        if (!Guid.TryParse(userId, out _))
         {
             throw new AuthenticationException("Invalid refresh token");
         }
 
-        return (TokenHelper.GetJwtToken(username, id, AccessTokenLifetime).ToString(),
-            TokenHelper.GetJwtToken(username, id, RefreshTokenLifetime).ToString());
+        var accessToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(userId, AccessTokenLifetime));
+        var newRefreshToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(userId, RefreshTokenLifetime));
+        
+        return (accessToken ?? throw new Domain.Exceptions.AuthenticationException(),
+            newRefreshToken ?? throw new Domain.Exceptions.AuthenticationException());
     }
 
     public async Task<User> GetUserById(Guid userId, CancellationToken cancellationToken)
@@ -76,7 +81,7 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
 
         user.Username = username ?? user.Username;
         user.Password = password ?? user.Password;
-        
+
         await usersRepository.UpdateUser(user, cancellationToken);
     }
 
