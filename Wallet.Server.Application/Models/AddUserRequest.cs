@@ -1,3 +1,3 @@
 ﻿namespace Wallet.Server.Application.Models;
 
-public record AddUserRequest(string Username, string Password);
+public record AuthRequest(string Username, string Password);

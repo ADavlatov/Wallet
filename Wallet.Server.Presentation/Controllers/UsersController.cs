@@ -6,17 +6,25 @@ namespace Wallet.Server.Presentation.Controllers;
 
 [ApiController]
 [Route("api/v1/users")]
-public class UsersController(
-    IUsersService usersService,
-    ICategoriesService categoriesService,
-    ITransactionsService transactionsService) : ControllerBase
+public class UsersController(IUsersService usersService) : ControllerBase
 {
-    // [HttpPost]
-    // public async Task<IActionResult> AddUser([FromBody] AddUserRequest request, CancellationToken cancellationToken)
-    // {
-    //     await usersService.AddUser(request.Username, request.Password, cancellationToken);
-    //     return Ok();
-    // }
+    [HttpPost("/sign-in")]
+    public async Task<IActionResult> SignIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await usersService.SignIn(request.Username, request.Password, cancellationToken));
+    }
+
+    [HttpPost("/log-in")]
+    public async Task<IActionResult> LogIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await usersService.LogIn(request.Username, request.Password, cancellationToken));
+    }
+
+    [HttpPost("/refresh")]
+    public async Task<IActionResult> RefreshTokens([FromBody] RefreshTokensRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await usersService.RefreshTokens(request.RefreshToken, cancellationToken));
+    }
 
     [HttpGet]
     public async Task<IActionResult> GetUserByUsername([FromQuery] string username, CancellationToken cancellationToken)
