@@ -8,12 +8,12 @@ namespace Wallet.Server.Presentation.Controllers;
 [Route("api/v1/users")]
 public class UsersController(IUsersService usersService) : ControllerBase
 {
-    [HttpPost]
-    public async Task<IActionResult> AddUser([FromBody] AddUserRequest request, CancellationToken cancellationToken)
-    {
-        await usersService.AddUser(request.Username, request.Password, cancellationToken);
-        return Ok();
-    }
+    // [HttpPost]
+    // public async Task<IActionResult> AddUser([FromBody] AddUserRequest request, CancellationToken cancellationToken)
+    // {
+    //     await usersService.AddUser(request.Username, request.Password, cancellationToken);
+    //     return Ok();
+    // }
 
     [HttpPost]
     public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request, CancellationToken cancellationToken)
@@ -21,10 +21,10 @@ public class UsersController(IUsersService usersService) : ControllerBase
         return Ok(await usersService.GetUserByUsername(request.Username, cancellationToken));
     }
 
-    [HttpGet("/{userId}")]
-    public async Task<IActionResult> GetUserById(Guid userId, CancellationToken cancellationToken)
+    [HttpGet("/{id}")]
+    public async Task<IActionResult> GetUserById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await usersService.GetUserById(userId, cancellationToken));
+        return Ok(await usersService.GetUserById(id, cancellationToken));
     }
 
     [HttpPut]

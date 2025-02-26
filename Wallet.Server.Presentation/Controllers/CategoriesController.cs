@@ -23,7 +23,7 @@ public class CategoriesController(ICategoriesService categoriesService, ITransac
         return Ok();
     }
 
-    [HttpPost]
+    [HttpPost("/byType")]
     public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
@@ -34,14 +34,14 @@ public class CategoriesController(ICategoriesService categoriesService, ITransac
         return Ok(await categoriesService.GetCategoriesByType(request.UserId, type, cancellationToken));
     }
 
-    [HttpPost]
+    [HttpPost("/byName")]
     public async Task<IActionResult> GetCategoryByName([FromBody] GetCategoryByNameRequest request, CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken));
     }
 
     [HttpGet("/{userId}")]
-    public async Task<IActionResult> GetCategoriesByName(Guid userId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetCategoriesByUser(Guid userId, CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoriesByUser(userId, cancellationToken));
     }
