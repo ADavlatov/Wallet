@@ -13,12 +13,12 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     [HttpPost("AddCategory")]
     public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
-        {
-            throw new RequestValidateException();
-        }
+        // if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
+        // {
+        //     throw new RequestValidateException();
+        // }
 
-        await categoriesService.AddCategory(request.UserId, request.Name, type, cancellationToken);
+        await categoriesService.AddCategory(request.UserId, request.Name, request.Type, cancellationToken);
 
         return Ok();
     }
@@ -46,13 +46,13 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
         return Ok(await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken));
     }
 
-    [HttpGet("GetCategoryById/{categoryId}")]
+    [HttpGet("{categoryId}")]
     public async Task<IActionResult> GetCategoryById(Guid categoryId, CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoryById(categoryId, cancellationToken));
     }
 
-    [HttpPut("UpdateCategory")]
+    [HttpPut]
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
     {
         var isValid = Enum.TryParse(request.Type, true, out TransactionTypes type);
@@ -66,7 +66,7 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
         return Ok();
     }
 
-    [HttpDelete("DeleteCategory/{categoryId}")]
+    [HttpDelete("{categoryId}")]
     public async Task<IActionResult> DeleteCategory(Guid categoryId, CancellationToken cancellationToken)
     {
         await categoriesService.DeleteCategory(categoryId, cancellationToken);

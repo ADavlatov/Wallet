@@ -40,13 +40,13 @@ public class TransactionsController(ITransactionsService transactionsService) : 
         return Ok(await transactionsService.GetTransactionsByCategory(request.CategoryId, cancellationToken));
     }
 
-    [HttpGet("GetTransactionById/{transactionId}")]
+    [HttpGet("{transactionId}")]
     public async Task<IActionResult> GetTransactionById(Guid transactionId, CancellationToken cancellationToken)
     {
         return Ok(await transactionsService.GetTransactionById(transactionId, cancellationToken));
     }
 
-    [HttpPut("UpdateTransaction")]
+    [HttpPut]
     public async Task<IActionResult> UpdateTransaction([FromBody] UpdateTransactionRequest request, CancellationToken cancellationToken)
     {
         var isValid = Enum.TryParse(request.Type, true, out TransactionTypes type);
@@ -60,7 +60,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
         return Ok();
     }
 
-    [HttpDelete("DeleteTransaction/{transactionId}")]
+    [HttpDelete("{transactionId}")]
     public async Task<IActionResult> DeleteTransaction(Guid transactionId, CancellationToken cancellationToken)
     {
         await transactionsService.RemoveTransaction(transactionId, cancellationToken);
