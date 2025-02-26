@@ -6,7 +6,10 @@ namespace Wallet.Server.Presentation.Controllers;
 
 [ApiController]
 [Route("api/v1/users")]
-public class UsersController(IUsersService usersService) : ControllerBase
+public class UsersController(
+    IUsersService usersService,
+    ICategoriesService categoriesService,
+    ITransactionsService transactionsService) : ControllerBase
 {
     // [HttpPost]
     // public async Task<IActionResult> AddUser([FromBody] AddUserRequest request, CancellationToken cancellationToken)
@@ -15,20 +18,21 @@ public class UsersController(IUsersService usersService) : ControllerBase
     //     return Ok();
     // }
 
-    [HttpPost]
-    public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request, CancellationToken cancellationToken)
+    [HttpGet]
+    public async Task<IActionResult> GetUserByUsername([FromQuery] string username, CancellationToken cancellationToken)
     {
-        return Ok(await usersService.GetUserByUsername(request.Username, cancellationToken));
+        return Ok(await usersService.GetUserByUsername(username, cancellationToken));
     }
 
-    [HttpGet("/{id}")]
-    public async Task<IActionResult> GetUserById(Guid id, CancellationToken cancellationToken)
+    [HttpGet("/{userId}")]
+    public async Task<IActionResult> GetUserById(Guid userId, CancellationToken cancellationToken)
     {
-        return Ok(await usersService.GetUserById(id, cancellationToken));
+        return Ok(await usersService.GetUserById(userId, cancellationToken));
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request,
+        CancellationToken cancellationToken)
     {
         await usersService.UpdateUser(request.UserId, request.Username, request.Password, cancellationToken);
         return Ok();

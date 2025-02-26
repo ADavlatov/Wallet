@@ -23,16 +23,21 @@ public class TransactionsController(ITransactionsService transactionsService) : 
 
         return Ok();
     }
-    
-    [HttpPost]
-    public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request, CancellationToken cancellationToken)
+
+    [HttpGet]
+    public async Task<IActionResult> GetTransactionsByType([FromQuery] Guid userId, string type, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
+        if (!Enum.TryParse(type, true, out TransactionTypes transactionType))
         {
             throw new RequestValidateException();
         }
-        
-        return Ok(await transactionsService.GetTransactionsByType(request.UserId, type, cancellationToken));
+        return Ok(await transactionsService.GetTransactionsByType(userId, transactionType, cancellationToken));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTransactionsByCategory([FromQuery] Guid categoryId, CancellationToken cancellationToken)
+    {
+        return Ok(await transactionsService.GetTransactionsByCategory(categoryId, cancellationToken));
     }
 
     [HttpGet("/{transactionId}")]
@@ -49,9 +54,9 @@ public class TransactionsController(ITransactionsService transactionsService) : 
         {
             throw new RequestValidateException();
         }
-        
+
         await transactionsService.UpdateTransaction(request.TransactionId, request.Name, request.Amount, request.Date, type, cancellationToken);
-        
+
         return Ok();
     }
 

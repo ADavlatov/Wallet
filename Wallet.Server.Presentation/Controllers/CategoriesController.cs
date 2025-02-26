@@ -23,33 +23,33 @@ public class CategoriesController(ICategoriesService categoriesService, ITransac
         return Ok();
     }
 
-    [HttpPost("/byType")]
-    public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request, CancellationToken cancellationToken)
+    [HttpGet]
+    public async Task<IActionResult> GetCategoriesByType([FromQuery] Guid userId, string type, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
+        if (!Enum.TryParse(type, true, out TransactionTypes transactionType))
         {
             throw new RequestValidateException();
         }
 
-        return Ok(await categoriesService.GetCategoriesByType(request.UserId, type, cancellationToken));
+        return Ok(await categoriesService.GetCategoriesByType(userId, transactionType, cancellationToken));
     }
 
-    [HttpPost("/byName")]
-    public async Task<IActionResult> GetCategoryByName([FromBody] GetCategoryByNameRequest request, CancellationToken cancellationToken)
+    [HttpGet]
+    public async Task<IActionResult> GetCategoryByName([FromQuery] Guid userId, string name, CancellationToken cancellationToken)
     {
-        return Ok(await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken));
+        return Ok(await categoriesService.GetCategoryByName(userId, name, cancellationToken));
     }
 
-    [HttpGet("/{userId}")]
-    public async Task<IActionResult> GetCategoriesByUser(Guid userId, CancellationToken cancellationToken)
+    [HttpGet]
+    public async Task<IActionResult> GetCategoriesByUser([FromQuery] Guid userId, CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoriesByUser(userId, cancellationToken));
     }
-    
-    [HttpGet("/{categoryId}/transactions")]
-    public async Task<IActionResult> GetTransactionsByCategory(Guid categoryId, CancellationToken cancellationToken)
+
+    [HttpGet("/{categoryId}")]
+    public async Task<IActionResult> GetCategoryById(Guid categoryId, CancellationToken cancellationToken)
     {
-        return Ok(await transactionsService.GetTransactionsByCategory(categoryId, cancellationToken));
+        return Ok(await categoriesService.GetCategoryById(categoryId, cancellationToken));
     }
 
     [HttpPut]
@@ -60,16 +60,16 @@ public class CategoriesController(ICategoriesService categoriesService, ITransac
         {
             throw new RequestValidateException();
         }
-        
+
         await categoriesService.UpdateCategory(request.CategoryId, request.Name, type, cancellationToken);
-        
+
         return Ok();
     }
 
     [HttpDelete("/{categoryId}")]
-    public async Task<IActionResult> DeleteCategory(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteCategory(Guid categoryId, CancellationToken cancellationToken)
     {
-        await categoriesService.DeleteCategory(id, cancellationToken);
+        await categoriesService.DeleteCategory(categoryId, cancellationToken);
         return Ok();
     }
 }
