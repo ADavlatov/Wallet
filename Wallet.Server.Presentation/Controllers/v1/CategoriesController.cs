@@ -1,16 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces;
 
-namespace Wallet.Server.Presentation.Controllers;
+namespace Wallet.Server.Presentation.Controllers.v1;
 
 [ApiController]
-[Route("api/v1/categories")]
-public class CategoriesController(ICategoriesService categoriesService, ITransactionsService transactionsService) : ControllerBase
+[Route("/api/v1/categories")]
+public class CategoriesController(ICategoriesService categoriesService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("AddCategory")]
     public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest request, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
@@ -23,36 +23,36 @@ public class CategoriesController(ICategoriesService categoriesService, ITransac
         return Ok();
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetCategoriesByType([FromQuery] Guid userId, string type, CancellationToken cancellationToken)
+    [HttpPost("GetCategoriesByType")]
+    public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(type, true, out TransactionTypes transactionType))
+        if (!Enum.TryParse(request.Type, true, out TransactionTypes transactionType))
         {
             throw new RequestValidateException();
         }
 
-        return Ok(await categoriesService.GetCategoriesByType(userId, transactionType, cancellationToken));
+        return Ok(await categoriesService.GetCategoriesByType(request.UserId, transactionType, cancellationToken));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetCategoryByName([FromQuery] Guid userId, string name, CancellationToken cancellationToken)
+    [HttpPost("GetCategoriesByUser")]
+    public async Task<IActionResult> GetCategoriesByUser([FromBody] GetCategoriesByUserRequest request, CancellationToken cancellationToken)
     {
-        return Ok(await categoriesService.GetCategoryByName(userId, name, cancellationToken));
+        return Ok(await categoriesService.GetCategoriesByUser(request.UserId, cancellationToken));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetCategoriesByUser([FromQuery] Guid userId, CancellationToken cancellationToken)
+    [HttpPost("GetCategoryByName")]
+    public async Task<IActionResult> GetCategoryByName([FromBody] GetCategoryByNameRequest request, CancellationToken cancellationToken)
     {
-        return Ok(await categoriesService.GetCategoriesByUser(userId, cancellationToken));
+        return Ok(await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken));
     }
 
-    [HttpGet("/{categoryId}")]
+    [HttpGet("GetCategoryById/{categoryId}")]
     public async Task<IActionResult> GetCategoryById(Guid categoryId, CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoryById(categoryId, cancellationToken));
     }
 
-    [HttpPut]
+    [HttpPut("UpdateCategory")]
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
     {
         var isValid = Enum.TryParse(request.Type, true, out TransactionTypes type);
@@ -66,7 +66,7 @@ public class CategoriesController(ICategoriesService categoriesService, ITransac
         return Ok();
     }
 
-    [HttpDelete("/{categoryId}")]
+    [HttpDelete("DeleteCategory/{categoryId}")]
     public async Task<IActionResult> DeleteCategory(Guid categoryId, CancellationToken cancellationToken)
     {
         await categoriesService.DeleteCategory(categoryId, cancellationToken);

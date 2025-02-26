@@ -1,44 +1,44 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
 using Wallet.Server.Domain.Interfaces;
 
-namespace Wallet.Server.Presentation.Controllers;
+namespace Wallet.Server.Presentation.Controllers.v1;
 
 [ApiController]
-[Route("api/v1/users")]
+[Route("/api/v1/users")]
 public class UsersController(IUsersService usersService) : ControllerBase
 {
-    [HttpPost("/sign-in")]
+    [HttpPost("SignIn")]
     public async Task<IActionResult> SignIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
     {
         return Ok(await usersService.SignIn(request.Username, request.Password, cancellationToken));
     }
 
-    [HttpPost("/log-in")]
+    [HttpPost("LogIn")]
     public async Task<IActionResult> LogIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
     {
         return Ok(await usersService.LogIn(request.Username, request.Password, cancellationToken));
     }
 
-    [HttpPost("/refresh")]
+    [HttpPost("RefreshTokens")]
     public async Task<IActionResult> RefreshTokens([FromBody] RefreshTokensRequest request, CancellationToken cancellationToken)
     {
         return Ok(await usersService.RefreshTokens(request.RefreshToken, cancellationToken));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetUserByUsername([FromQuery] string username, CancellationToken cancellationToken)
+    [HttpPost("GetUserByUsername")]
+    public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request, CancellationToken cancellationToken)
     {
-        return Ok(await usersService.GetUserByUsername(username, cancellationToken));
+        return Ok(await usersService.GetUserByUsername(request.Username, cancellationToken));
     }
 
-    [HttpGet("/{userId}")]
+    [HttpGet("GetUserById/{userId}")]
     public async Task<IActionResult> GetUserById(Guid userId, CancellationToken cancellationToken)
     {
         return Ok(await usersService.GetUserById(userId, cancellationToken));
     }
 
-    [HttpPut]
+    [HttpPut("UpdateUser")]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request,
         CancellationToken cancellationToken)
     {
@@ -46,7 +46,7 @@ public class UsersController(IUsersService usersService) : ControllerBase
         return Ok();
     }
 
-    [HttpDelete("/{userId}")]
+    [HttpDelete("DeleteUser/{userId}")]
     public async Task<IActionResult> DeleteUser(Guid userId, CancellationToken cancellationToken)
     {
         await usersService.DeleteUser(userId, cancellationToken);

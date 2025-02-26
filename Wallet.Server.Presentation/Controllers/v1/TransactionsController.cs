@@ -1,16 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces;
 
-namespace Wallet.Server.Presentation.Controllers;
+namespace Wallet.Server.Presentation.Controllers.v1;
 
 [ApiController]
-[Route("api/v1/transactions")]
+[Route("/api/v1/transactions")]
 public class TransactionsController(ITransactionsService transactionsService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("AddTransaction")]
     public async Task<IActionResult> AddTransaction([FromBody] AddTransactionRequest request, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
@@ -23,30 +23,30 @@ public class TransactionsController(ITransactionsService transactionsService) : 
 
         return Ok();
     }
-
-    [HttpGet]
-    public async Task<IActionResult> GetTransactionsByType([FromQuery] Guid userId, string type, CancellationToken cancellationToken)
+    
+    [HttpPost("GetTransactionsByType")]
+    public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(type, true, out TransactionTypes transactionType))
+        if (!Enum.TryParse(request.Type, true, out TransactionTypes transactionType))
         {
             throw new RequestValidateException();
         }
-        return Ok(await transactionsService.GetTransactionsByType(userId, transactionType, cancellationToken));
+        return Ok(await transactionsService.GetTransactionsByType(request.UserId, transactionType, cancellationToken));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetTransactionsByCategory([FromQuery] Guid categoryId, CancellationToken cancellationToken)
+    [HttpPost("GetTransactionsByCategory")]
+    public async Task<IActionResult> GetTransactionsByCategory([FromBody] GetTransactionsByCategoryRequest request, CancellationToken cancellationToken)
     {
-        return Ok(await transactionsService.GetTransactionsByCategory(categoryId, cancellationToken));
+        return Ok(await transactionsService.GetTransactionsByCategory(request.CategoryId, cancellationToken));
     }
 
-    [HttpGet("/{transactionId}")]
+    [HttpGet("GetTransactionById/{transactionId}")]
     public async Task<IActionResult> GetTransactionById(Guid transactionId, CancellationToken cancellationToken)
     {
         return Ok(await transactionsService.GetTransactionById(transactionId, cancellationToken));
     }
 
-    [HttpPut]
+    [HttpPut("UpdateTransaction")]
     public async Task<IActionResult> UpdateTransaction([FromBody] UpdateTransactionRequest request, CancellationToken cancellationToken)
     {
         var isValid = Enum.TryParse(request.Type, true, out TransactionTypes type);
@@ -60,7 +60,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
         return Ok();
     }
 
-    [HttpDelete("/{transactionId}")]
+    [HttpDelete("DeleteTransaction/{transactionId}")]
     public async Task<IActionResult> DeleteTransaction(Guid transactionId, CancellationToken cancellationToken)
     {
         await transactionsService.RemoveTransaction(transactionId, cancellationToken);
