@@ -4,10 +4,10 @@ namespace Wallet.Server.Infrastructure.Helpers;
 
 public class PasswordHashHelper
 {
-    
+
     private const int IterationCount = 10000;
     private const int SaltLength = 32;
-    
+
     public static bool ValidateHash(string? password, string? salt, string expectedHash)
     {
         if (password == null) return false;
