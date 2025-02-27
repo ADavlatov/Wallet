@@ -1,3 +1,3 @@
-namespace Wallet.Server.Application.Models;
+namespace Wallet.Server.Application.Models.Users;
 
 public record TokensResponse(string AccessToken, string RefreshToken);

@@ -1,3 +1,3 @@
-﻿namespace Wallet.Server.Application.Models;
+﻿namespace Wallet.Server.Application.Models.Categories;
 
 public record UpdateCategoryRequest(Guid CategoryId, string? Name, string? Type);

@@ -1,3 +1,3 @@
-﻿namespace Wallet.Server.Application.Models;
+﻿namespace Wallet.Server.Application.Models.Users;
 
 public record GetUserByUsernameRequest(string Username);
