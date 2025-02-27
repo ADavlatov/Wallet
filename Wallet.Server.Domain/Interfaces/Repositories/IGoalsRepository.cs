@@ -1,6 +1,6 @@
 using Wallet.Server.Domain.Entities;
 
-namespace Wallet.Server.Domain.Interfaces;
+namespace Wallet.Server.Domain.Interfaces.Repositories;
 
 public interface IGoalsRepository
 {

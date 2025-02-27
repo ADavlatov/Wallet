@@ -1,7 +1,7 @@
 ﻿using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 
-namespace Wallet.Server.Domain.Interfaces;
+namespace Wallet.Server.Domain.Interfaces.Services;
 
 public interface ITransactionsService
 {
@@ -12,5 +12,5 @@ public interface ITransactionsService
     public Task<Transaction> GetTransactionById(Guid transactionId, CancellationToken cancellationToken);
     public Task UpdateTransaction(Guid transactionId, string? name, decimal? amount, DateTime? date,
         TransactionTypes? type, CancellationToken cancellationToken);
-    public Task RemoveTransaction(Guid transactionId, CancellationToken cancellationToken);
+    public Task DeleteTransaction(Guid transactionId, CancellationToken cancellationToken);
 }

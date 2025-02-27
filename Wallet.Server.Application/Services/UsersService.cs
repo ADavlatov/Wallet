@@ -1,7 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
+using Wallet.Server.Application.Models.Users;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
-using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Repositories;
+using Wallet.Server.Domain.Interfaces.Services;
 using Wallet.Server.Infrastructure.Helpers;
 using AuthenticationException = System.Security.Authentication.AuthenticationException;
 
@@ -9,10 +12,10 @@ namespace Wallet.Server.Application.Services;
 
 public class UsersService(IUsersRepository usersRepository) : IUsersService
 {
-    private const int AccessTokenLifetime = 1;
-    private const int RefreshTokenLifetime = 15;
+    private const int AccessTokenLifetimeDays = 1;
+    private const int RefreshTokenLifetimeDays = 15;
 
-    public async Task<(string, string)> SignIn(string username, string password, CancellationToken cancellationToken)
+    public async Task<TokensResponse> SignIn(string username, string password, CancellationToken cancellationToken)
     {
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
         if (isUserExists)
@@ -22,13 +25,15 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
 
         var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
         var user = await usersRepository.AddUser(new User(username, passwordHash, passwordSalt), cancellationToken);
-        var accessToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), AccessTokenLifetime));
-        var refreshToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), RefreshTokenLifetime));
+        var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+        var accessToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(user.Id.ToString(), AccessTokenLifetimeDays));
+        var refreshToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(user.Id.ToString(), RefreshTokenLifetimeDays));
         
-        return (accessToken, refreshToken);
+        if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
+        return new TokensResponse(accessToken, refreshToken);
     }
 
-    public async Task<(string, string)> LogIn(string username, string password, CancellationToken cancellationToken)
+    public async Task<TokensResponse> LogIn(string username, string password, CancellationToken cancellationToken)
     {
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
         if (!isUserExists)
@@ -37,32 +42,34 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
         }
 
         var user = await usersRepository.GetUserByUsername(username, cancellationToken);
-        if (!PasswordHashHelper.ValidateHash(password, user.PasswordSalt, user.Password))
+        if (!PasswordHashHelper.ValidateHash(password, user.PasswordSalt, user.PasswordHash))
         {
             throw new AuthenticationException("Wrong password");
         }
 
-        var accessToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), AccessTokenLifetime));
-        var refreshToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(user.Id.ToString(), RefreshTokenLifetime));
+        var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+        var accessToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(user.Id.ToString(), AccessTokenLifetimeDays));
+        var refreshToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(user.Id.ToString(), RefreshTokenLifetimeDays));
         
-        return (accessToken ?? throw new Domain.Exceptions.AuthenticationException(),
-            refreshToken ?? throw new Domain.Exceptions.AuthenticationException());
+        if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
+        return new TokensResponse(accessToken, refreshToken);
     }
 
-    public async Task<(string, string)> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
+    public async Task<TokensResponse> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
     {
-        var token = new JwtSecurityTokenHandler().ReadJwtToken(refreshToken);
-        var userId = token.Claims.First().Value;
-        if (!Guid.TryParse(userId, out _))
+        var token = await new JwtSecurityTokenHandler().ValidateTokenAsync(refreshToken, new TokenValidationParameters());
+        var id = token.Claims.First().Value;
+        if (!Guid.TryParse(id.ToString(), out var userId))
         {
             throw new AuthenticationException("Invalid refresh token");
         }
 
-        var accessToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(userId, AccessTokenLifetime));
-        var newRefreshToken = new JwtSecurityTokenHandler().WriteToken(TokenHelper.GetJwtToken(userId, RefreshTokenLifetime));
-        
-        return (accessToken ?? throw new Domain.Exceptions.AuthenticationException(),
-            newRefreshToken ?? throw new Domain.Exceptions.AuthenticationException());
+        var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+        var accessToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(userId.ToString(), AccessTokenLifetimeDays));
+        var newRefreshToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(userId.ToString(), RefreshTokenLifetimeDays));
+       
+        if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
+        return new TokensResponse(accessToken, newRefreshToken);
     }
 
     public async Task<User> GetUserById(Guid userId, CancellationToken cancellationToken)
@@ -78,9 +85,14 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
     public async Task UpdateUser(Guid id, string? username, string? password, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetUserById(id, cancellationToken);
-
+        
         user.Username = username ?? user.Username;
-        user.Password = password ?? user.Password;
+        if (password is not null)
+        {
+            var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+        }
 
         await usersRepository.UpdateUser(user, cancellationToken);
     }

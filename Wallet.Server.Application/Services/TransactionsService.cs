@@ -1,6 +1,7 @@
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
-using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Repositories;
+using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Application.Services;
 
@@ -15,7 +16,13 @@ public class TransactionsService(
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
         await transactionsRepository.AddTransaction(
-            new Transaction(name, amount, date, type) { User = user, UserId = userId, Category = category, CategoryId = category.Id },
+            new Transaction(name, amount, date, type)
+            {
+                User = user, 
+                UserId = userId, 
+                Category = category, 
+                CategoryId = category.Id
+            },
             cancellationToken);
     }
 
@@ -49,7 +56,7 @@ public class TransactionsService(
         await transactionsRepository.UpdateTransaction(transaction, cancellationToken);
     }
 
-    public async Task RemoveTransaction(Guid transactionId, CancellationToken cancellationToken)
+    public async Task DeleteTransaction(Guid transactionId, CancellationToken cancellationToken)
     {
         var transaction = await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
         await transactionsRepository.DeleteTransaction(transaction, cancellationToken);

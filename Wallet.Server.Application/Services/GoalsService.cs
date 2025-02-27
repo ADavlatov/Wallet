@@ -1,4 +1,4 @@
-using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Application.Services;
 

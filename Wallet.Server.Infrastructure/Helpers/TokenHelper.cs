@@ -7,7 +7,7 @@ namespace Wallet.Server.Infrastructure.Helpers;
 
 public static class TokenHelper
 {
-    public static JwtSecurityToken GetJwtToken(string userId, int lifetime)
+    public static JwtSecurityToken CreateJwtToken(string userId, int lifetime)
     {
         return new(issuer: AuthOptions.Issuer,
             audience: AuthOptions.Audience,

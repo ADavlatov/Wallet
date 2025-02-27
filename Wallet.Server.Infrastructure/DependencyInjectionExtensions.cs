@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Infrastructure.Repositories;
 
 namespace Wallet.Server.Infrastructure;

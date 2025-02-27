@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Infrastructure.Contexts;
 
 namespace Wallet.Server.Infrastructure.Repositories;
@@ -10,25 +11,23 @@ public class UsersRepository(WalletContext db) : IUsersRepository
 {
     public async Task<User> AddUser(User user, CancellationToken cancellationToken)
     {
-        await db.Users.AddAsync(user, cancellationToken);
+        db.Users.Add(user);
         await db.SaveChangesAsync(cancellationToken);
         return user;
     }
 
     public async Task<bool> IsUserExists(string username, CancellationToken cancellationToken)
     {
-        var user = await db.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
-        if (user is null)
-        {
-            return false;
-        }
-        
-        return true;
+        var user = await db.Users
+            .FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        return user is not null;
     }
 
     public async Task<List<User>> GetAllUsers(CancellationToken cancellationToken)
     {
-        var users = await db.Users.ToListAsync(cancellationToken);
+        var users = await db.Users
+            .ToListAsync(cancellationToken);
+        
         if (!users.Any())
         {
             throw new NotFoundException("Users not found");
@@ -39,7 +38,9 @@ public class UsersRepository(WalletContext db) : IUsersRepository
 
     public async Task<User> GetUserById(Guid id, CancellationToken cancellationToken)
     {
-        var user = await db.Users.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        var user = await db.Users
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        
         if (user is null)
         {
             throw new NotFoundException("User not found");
@@ -50,7 +51,9 @@ public class UsersRepository(WalletContext db) : IUsersRepository
 
     public async Task<User> GetUserByUsername(string username, CancellationToken cancellationToken)
     {
-        var user = await db.Users.FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        var user = await db.Users
+            .FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
+        
         if (user is null)
         {
             throw new NotFoundException("User not found");

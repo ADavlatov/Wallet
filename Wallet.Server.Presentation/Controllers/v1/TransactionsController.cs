@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
+using Wallet.Server.Application.Models.Transactions;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
@@ -23,7 +25,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
 
         return Ok();
     }
-    
+
     [HttpPost("GetTransactionsByType")]
     public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request, CancellationToken cancellationToken)
     {
@@ -63,7 +65,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpDelete("{transactionId}")]
     public async Task<IActionResult> DeleteTransaction(Guid transactionId, CancellationToken cancellationToken)
     {
-        await transactionsService.RemoveTransaction(transactionId, cancellationToken);
+        await transactionsService.DeleteTransaction(transactionId, cancellationToken);
         return Ok();
     }
 }

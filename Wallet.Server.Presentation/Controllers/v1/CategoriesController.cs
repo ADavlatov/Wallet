@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Wallet.Server.Application.Models;
+using Wallet.Server.Application.Models.Categories;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
@@ -13,13 +14,7 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     [HttpPost("AddCategory")]
     public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest request, CancellationToken cancellationToken)
     {
-        // if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
-        // {
-        //     throw new RequestValidateException();
-        // }
-
         await categoriesService.AddCategory(request.UserId, request.Name, request.Type, cancellationToken);
-
         return Ok();
     }
 

@@ -2,6 +2,8 @@ using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Repositories;
+using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Application.Services;
 
@@ -10,13 +12,18 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
     public async Task AddCategory(Guid userId, string name, TransactionTypes type, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetUserById(userId, cancellationToken);
-        var category = await categoriesRepository.IsCategoryAlreadyExists(userId, name, type, cancellationToken);
-        if (category)
+        var isExists = await categoriesRepository.IsCategoryAlreadyExists(userId, name, type, cancellationToken);
+        if (isExists)
         {
             throw new AlreadyExistsException("Category with this name and type already exists");
         }
 
-        await categoriesRepository.AddCategory(new Category(name, type) { User = user, UserId = user.Id }, cancellationToken);
+        await categoriesRepository.AddCategory(
+            new Category(name, type)
+            {
+                User = user, UserId = user.Id
+            }, 
+            cancellationToken);
     }
 
     public async Task<List<Category>> GetCategoriesByUser(Guid userId, CancellationToken cancellationToken)

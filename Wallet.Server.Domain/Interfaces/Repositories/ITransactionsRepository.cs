@@ -1,7 +1,7 @@
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 
-namespace Wallet.Server.Domain.Interfaces;
+namespace Wallet.Server.Domain.Interfaces.Repositories;
 
 public interface ITransactionsRepository
 {

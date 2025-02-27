@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
+using Wallet.Server.Application.Models.Users;
 using Wallet.Server.Domain.Interfaces;
+using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
@@ -8,25 +10,22 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("/api/v1/users")]
 public class UsersController(IUsersService usersService) : ControllerBase
 {
+    [HttpPost("SignUp")]
+    public async Task<IActionResult> SignUp([FromBody] AuthRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await usersService.SignUp(request.Username, request.Password, cancellationToken));
+    }
+
     [HttpPost("SignIn")]
     public async Task<IActionResult> SignIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
     {
-        var result = await usersService.SignIn(request.Username, request.Password, cancellationToken);
-        return Ok(new TokensResponse(result.Item1, result.Item2));
-    }
-
-    [HttpPost("LogIn")]
-    public async Task<IActionResult> LogIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
-    {
-        var result = await usersService.LogIn(request.Username, request.Password, cancellationToken);
-        return Ok(new TokensResponse(result.Item1, result.Item2));
+        return Ok(await usersService.SignIn(request.Username, request.Password, cancellationToken));
     }
 
     [HttpPost("RefreshTokens")]
     public async Task<IActionResult> RefreshTokens([FromBody] RefreshTokensRequest request, CancellationToken cancellationToken)
     {
-        var result = await usersService.RefreshTokens(request.RefreshToken, cancellationToken);
-        return Ok(new TokensResponse(result.Item1, result.Item2));
+        return Ok(await usersService.RefreshTokens(request.RefreshToken, cancellationToken));
     }
 
     [HttpPost("GetUserByUsername")]
