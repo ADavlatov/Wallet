@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
 using Wallet.Server.Application.Models.Users;
+using Wallet.Server.Application.Validators;
 using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Services;
 
@@ -13,12 +14,24 @@ public class UsersController(IUsersService usersService) : ControllerBase
     [HttpPost("SignUp")]
     public async Task<IActionResult> SignUp([FromBody] AuthRequest request, CancellationToken cancellationToken)
     {
+        var validation = await new AuthValidator().ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors);
+        }
+        
         return Ok(await usersService.SignUp(request.Username, request.Password, cancellationToken));
     }
 
     [HttpPost("SignIn")]
     public async Task<IActionResult> SignIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
     {
+        var validation = await new AuthValidator().ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return BadRequest(validation.Errors);
+        }
+        
         return Ok(await usersService.SignIn(request.Username, request.Password, cancellationToken));
     }
 
