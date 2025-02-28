@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Categories;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
-using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
