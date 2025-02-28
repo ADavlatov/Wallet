@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using Wallet.Server.Application.Models.Users;
+using Wallet.Server.Domain;
+using Wallet.Server.Domain.DTOs;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Domain.Interfaces.Repositories;
@@ -15,7 +17,7 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
     private const int AccessTokenLifetimeDays = 1;
     private const int RefreshTokenLifetimeDays = 15;
 
-    public async Task<TokensResponse> SignIn(string username, string password, CancellationToken cancellationToken)
+    public async Task<TokensDto> SignUp(string username, string password, CancellationToken cancellationToken)
     {
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
         if (isUserExists)
@@ -30,10 +32,10 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
         var refreshToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(user.Id.ToString(), RefreshTokenLifetimeDays));
         
         if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
-        return new TokensResponse(accessToken, refreshToken);
+        return new TokensDto(accessToken, refreshToken);
     }
 
-    public async Task<TokensResponse> LogIn(string username, string password, CancellationToken cancellationToken)
+    public async Task<TokensDto> SignIn(string username, string password, CancellationToken cancellationToken)
     {
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
         if (!isUserExists)
@@ -52,10 +54,10 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
         var refreshToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(user.Id.ToString(), RefreshTokenLifetimeDays));
         
         if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
-        return new TokensResponse(accessToken, refreshToken);
+        return new TokensDto(accessToken, refreshToken);
     }
 
-    public async Task<TokensResponse> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
+    public async Task<TokensDto> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
     {
         var token = await new JwtSecurityTokenHandler().ValidateTokenAsync(refreshToken, new TokenValidationParameters());
         var id = token.Claims.First().Value;
@@ -69,7 +71,7 @@ public class UsersService(IUsersRepository usersRepository) : IUsersService
         var newRefreshToken = jwtSecurityTokenHandler.WriteToken(TokenHelper.CreateJwtToken(userId.ToString(), RefreshTokenLifetimeDays));
        
         if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
-        return new TokensResponse(accessToken, newRefreshToken);
+        return new TokensDto(accessToken, newRefreshToken);
     }
 
     public async Task<User> GetUserById(Guid userId, CancellationToken cancellationToken)
