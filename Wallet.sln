@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wallet.Server.Domain", "Wal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wallet.Server.Application", "Wallet.Server.Application\Wallet.Server.Application.csproj", "{298A45A1-87EA-4E87-80FF-DB4D64F45C62}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wallet.Client.Web", "Wallet.Client.Web\Wallet.Client.Web.csproj", "{A5F3EA0D-AA2F-40DA-8336-D09175582A37}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,7 @@ Global
 		{8342152F-4AC3-4C80-8270-CB446FB99915} = {DDBA6A9A-721B-44E8-A8A0-075577EC8BCB}
 		{8F1CD1A7-92BA-4719-9CD2-CE2DB55008B0} = {DDBA6A9A-721B-44E8-A8A0-075577EC8BCB}
 		{298A45A1-87EA-4E87-80FF-DB4D64F45C62} = {DDBA6A9A-721B-44E8-A8A0-075577EC8BCB}
+		{A5F3EA0D-AA2F-40DA-8336-D09175582A37} = {26B597DD-6661-45E2-94C0-7E9D060CE4F1}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{10FEA6E4-E12B-4500-8490-E6F3A9D868B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -61,5 +64,9 @@ Global
 		{298A45A1-87EA-4E87-80FF-DB4D64F45C62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{298A45A1-87EA-4E87-80FF-DB4D64F45C62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{298A45A1-87EA-4E87-80FF-DB4D64F45C62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5F3EA0D-AA2F-40DA-8336-D09175582A37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5F3EA0D-AA2F-40DA-8336-D09175582A37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5F3EA0D-AA2F-40DA-8336-D09175582A37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5F3EA0D-AA2F-40DA-8336-D09175582A37}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

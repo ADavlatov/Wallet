@@ -34,3 +34,9 @@
     build:
       context: .
       dockerfile: Wallet.Server.Presentation/Dockerfile
+
+  wallet.client.web:
+    image: wallet.client.web
+    build:
+      context: .
+      dockerfile: Wallet.Client.Web/Dockerfile
