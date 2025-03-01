@@ -1,19 +1,35 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Wallet.Server.Domain.DTOs;
+using Wallet.Server.Infrastructure.Options;
 
 namespace Wallet.Server.Infrastructure.Helpers;
 
 public static class TokenHelper
 {
-    public static JwtSecurityToken CreateJwtToken(string userId, int lifetime)
+    public static TokensDto CreateTokensPair(IOptions<JwtOptions> options, string userId)
     {
-        return new(issuer: AuthOptions.Issuer,
-            audience: AuthOptions.Audience,
+        var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+        var accessToken = jwtSecurityTokenHandler.WriteToken(CreateJwtToken(options, "access", userId));
+        var refreshToken = jwtSecurityTokenHandler.WriteToken(CreateJwtToken(options, "refresh", userId));
+
+        if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
+
+        return new TokensDto(accessToken, refreshToken);
+    }
+
+    private static JwtSecurityToken CreateJwtToken(IOptions<JwtOptions> options, string type, string userId)
+    {
+        return new(issuer: options.Value.Issuer,
+            audience: options.Value.Audience,
             claims: GetClaims(userId).Claims,
-            expires: DateTime.UtcNow.Add(TimeSpan.FromDays(lifetime)),
-            signingCredentials: new(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
+            expires: DateTime.UtcNow.AddDays(type == "access"
+                ? options.Value.AccessTokenLifeTimeFromDays
+                : options.Value.RefreshTokenLifeTimeFromDays),
+            signingCredentials: new(options.Value.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
     }
 
     private static ClaimsIdentity GetClaims(string userId)
@@ -27,16 +43,5 @@ public static class TokenHelper
             ClaimsIdentity.DefaultRoleClaimType);
 
         return claimsIdentity;
-    }
-
-    private class AuthOptions
-    {
-        public const string Issuer = "Server.qwe";
-
-        public const string Audience = "Client.qwe";
-
-        const string Key = "DjWu65sGJeM4Vr1i/4Zc3dCY3JCiwQTOiU6F1uG02SsQ5SoAycUgGBRFhpGW/dQu";
-
-        public static SymmetricSecurityKey GetSymmetricSecurityKey() => new(Encoding.UTF8.GetBytes(Key));
     }
 }
