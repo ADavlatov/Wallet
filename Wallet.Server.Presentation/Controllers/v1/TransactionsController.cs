@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
 using Wallet.Server.Application.Models.Transactions;
@@ -8,6 +9,7 @@ using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
+[Authorize]
 [ApiController]
 [Route("/api/v1/transactions")]
 public class TransactionsController(ITransactionsService transactionsService) : ControllerBase

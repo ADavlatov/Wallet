@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Wallet.Server.Application.Models.Users;
@@ -50,7 +51,22 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
     public async Task<TokensDto> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
     {
         var token = await new JwtSecurityTokenHandler().ValidateTokenAsync(refreshToken,
-            new TokenValidationParameters());
+            new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = options.Value.Issuer,
+                ValidAudience = options.Value.Audience,
+                IssuerSigningKey = options.Value.GetSymmetricSecurityKey()
+            });
+        
+        if (!token.IsValid)
+        {
+            throw new AuthenticationException("Invalid refresh token");
+        }
+        
         var id = token.Claims.First().Value;
         if (!Guid.TryParse(id.ToString(), out var userId))
         {

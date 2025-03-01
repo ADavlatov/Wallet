@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Categories;
 using Wallet.Server.Domain.Enums;
@@ -6,6 +7,7 @@ using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
+[Authorize]
 [ApiController]
 [Route("/api/v1/categories")]
 public class CategoriesController(ICategoriesService categoriesService) : ControllerBase

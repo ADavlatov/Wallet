@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models;
 using Wallet.Server.Application.Models.Users;
@@ -41,18 +42,21 @@ public class UsersController(IUsersService usersService) : ControllerBase
         return Ok(await usersService.RefreshTokens(request.RefreshToken, cancellationToken));
     }
 
+    [Authorize]
     [HttpPost("GetUserByUsername")]
     public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request, CancellationToken cancellationToken)
     {
         return Ok(await usersService.GetUserByUsername(request.Username, cancellationToken));
     }
 
+    [Authorize]
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetUserById(Guid userId, CancellationToken cancellationToken)
     {
         return Ok(await usersService.GetUserById(userId, cancellationToken));
     }
 
+    [Authorize]
     [HttpPut]
     public async Task<IActionResult> UpdateUser([FromBody] UpdateUserRequest request,
         CancellationToken cancellationToken)
@@ -61,6 +65,7 @@ public class UsersController(IUsersService usersService) : ControllerBase
         return Ok();
     }
 
+    [Authorize]
     [HttpDelete("{userId}")]
     public async Task<IActionResult> DeleteUser(Guid userId, CancellationToken cancellationToken)
     {
