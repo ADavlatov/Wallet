@@ -17,7 +17,7 @@ namespace Wallet.Server.Application.Services;
 
 public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions> options) : IUsersService
 {
-    public async Task<TokensDto> SignUp(string username, string password, CancellationToken cancellationToken)
+    public async Task<AuthDto> SignUp(string username, string password, CancellationToken cancellationToken)
     {
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
         if (isUserExists)
@@ -31,7 +31,7 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
         return TokenHelper.CreateTokensPair(options, user.Id.ToString());
     }
 
-    public async Task<TokensDto> SignIn(string username, string password, CancellationToken cancellationToken)
+    public async Task<AuthDto> SignIn(string username, string password, CancellationToken cancellationToken)
     {
         var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
         if (!isUserExists)
@@ -48,7 +48,7 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
         return TokenHelper.CreateTokensPair(options, user.Id.ToString());
     }
 
-    public async Task<TokensDto> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
+    public async Task<AuthDto> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
     {
         var token = await new JwtSecurityTokenHandler().ValidateTokenAsync(refreshToken,
             new TokenValidationParameters

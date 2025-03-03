@@ -10,7 +10,7 @@ namespace Wallet.Server.Infrastructure.Helpers;
 
 public static class TokenHelper
 {
-    public static TokensDto CreateTokensPair(IOptions<JwtOptions> options, string userId)
+    public static AuthDto CreateTokensPair(IOptions<JwtOptions> options, string userId)
     {
         var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
         var accessToken = jwtSecurityTokenHandler.WriteToken(CreateJwtToken(options, "access", userId));
@@ -18,7 +18,7 @@ public static class TokenHelper
 
         if (accessToken is null || refreshToken is null) throw new Domain.Exceptions.AuthenticationException();
 
-        return new TokensDto(accessToken, refreshToken);
+        return new AuthDto(accessToken, refreshToken, userId);
     }
 
     private static JwtSecurityToken CreateJwtToken(IOptions<JwtOptions> options, string type, string userId)
