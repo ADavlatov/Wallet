@@ -11,6 +11,17 @@ var builder = WebApplication.CreateBuilder(args);
 Wallet.Server.Infrastructure.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
 Wallet.Server.Application.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("https://localhost:7129")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
 builder.Services.AddDbContext<WalletContext>();
 builder.Services.AddControllers(x => x.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
@@ -41,12 +52,11 @@ builder.Services.AddSwaggerGen(x =>
                     Id = "Bearer"
                 },
                 Name = "Bearer",
-                In = ParameterLocation.Header 
+                In = ParameterLocation.Header
             },
-            new List<string>() 
+            new List<string>()
         }
     });
-
 });
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -55,19 +65,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         var jwtOptions = builder.Configuration.GetSection(JwtOptions.Section);
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = true,          
-            ValidateAudience = true,       
-            ValidateLifetime = true,     
-            ValidateIssuerSigningKey = true, 
-            ValidIssuer = jwtOptions["Issuer"],      
-            ValidAudience = jwtOptions["Audience"],     
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtOptions["Issuer"],
+            ValidAudience = jwtOptions["Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions["SecretKey"]!))
         };
     });
 
-
 var app = builder.Build();
 
+app.UseCors();
 app.UseRouting();
 app.UseSwagger();
 app.UseSwaggerUI();
