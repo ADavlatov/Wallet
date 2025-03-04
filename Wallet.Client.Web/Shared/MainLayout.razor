@@ -1,0 +1,43 @@
+﻿@using Wallet.Client.Web.Entities
+@using Wallet.Client.Web.Interfaces
+@inherits LayoutComponentBase
+@inject ILocalStorageService LocalStorageService
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu/>
+    </div>
+
+    <main>
+        @if (user != null)
+        {
+            <div class="top-row px-4">
+                <a style="color: #000000" href="account" >Аккаунт</a>
+                <a style="color: #000000" href="signOut">Выход</a>
+            </div>
+        }
+        else
+        {
+            <div class="top-row px-4">
+                <a style="color: #000000" href="signIn">Вход</a>
+                <a style="color: #000000" href="signUp">Регистрация</a>
+            </div>
+        }
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code
+{
+    private bool loading;
+    private User user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        loading = true;
+        user = await LocalStorageService.GetItem<User>("user");
+        loading = false;
+    }
+}

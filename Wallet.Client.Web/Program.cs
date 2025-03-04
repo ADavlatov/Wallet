@@ -1,27 +1,28 @@
-using Wallet.Client.Web.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Wallet.Client.Web;
+using Wallet.Client.Web.Interfaces;
+using Wallet.Client.Web.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+builder.Services
+    .AddScoped<IAuthenticationService, AuthenticationService>()
+    .AddScoped<IUserService, UserService>()
+    .AddScoped<IHttpService, HttpService>()
+    .AddScoped<ILocalStorageService, LocalStorageService>();
 
-var app = builder.Build();
+builder.Services.AddScoped(x => {
+    var apiUrl = new Uri("http://localhost:5221");
+    var httpClient = new HttpClient { BaseAddress = apiUrl };
+    return httpClient;
+});
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+var host = builder.Build();
 
-app.UseHttpsRedirection();
+var authenticationService = host.Services.GetRequiredService<IAuthenticationService>();
+await authenticationService.Initialize();
 
-app.UseStaticFiles();
-app.UseAntiforgery();
-
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-app.Run();
+await host.RunAsync();
