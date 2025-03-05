@@ -1,0 +1,13 @@
+﻿@page "/signout"
+@using Wallet.Client.Web.Interfaces
+@inject IAuthenticationService AuthenticationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Выход</PageTitle>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthenticationService.SignOut();
+    }
+}

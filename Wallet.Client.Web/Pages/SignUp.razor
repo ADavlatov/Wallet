@@ -1,0 +1,82 @@
+﻿@page "/signup"
+@using Wallet.Client.Web.Interfaces
+@using Wallet.Client.Web.Models
+@inject IAuthenticationService AuthenticationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Регистрация</PageTitle>
+
+<div class="container" style="margin-top: 100px;">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Регистрация:
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@_requestModel" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator/>
+                        <div class="mb-3">
+                            <label class="form-label" style="width: 100%">
+                                Имя пользователя:
+                                <InputText @bind-Value="_requestModel.Username" class="form-control"/>
+                                <ValidationMessage For="@(() => _requestModel.Username)"/>
+                            </label>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="width: 100%">
+                                Пароль
+                                <InputText @bind-Value="_requestModel.Password" type="password" class="form-control"/>
+                                <ValidationMessage For="@(() => _requestModel.Password)"/>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            @if (_loading)
+                            {
+                                <span class="spinner-border spinner-border-sm mr-1"></span>
+                            }
+                            Зарегестрироваться
+                        </button>
+                        @if (!string.IsNullOrEmpty(_error))
+                        {
+                            <div class="alert alert-danger mt-3 mb-0">@_error</div>
+                        }
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private readonly AuthRequest _requestModel = new();
+    private bool _loading;
+    private string? _error;
+
+    protected override void OnInitialized()
+    {
+        if (AuthenticationService.User != null)
+        {
+            NavigationManager.NavigateTo("");
+        }
+    }
+
+    private async void HandleValidSubmit()
+    {
+        _loading = true;
+        try
+        {
+            await AuthenticationService.SignUp(_requestModel.Username, _requestModel.Password);
+            NavigationManager.NavigateTo("", true);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _loading = false;
+            StateHasChanged();
+        }
+    }
+
+}

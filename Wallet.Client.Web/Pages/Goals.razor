@@ -1,0 +1,203 @@
+﻿@page "/Goals"
+
+<PageTitle>Цели</PageTitle>
+
+<h3>Цели</h3>
+
+<h1>Цели накопления</h1>
+
+<div class="add-goal-block">
+    <h2>Добавить новую цель</h2>
+
+    <div class="goal-name-input">
+        <label for="goalName">Название цели:</label>
+        <InputText id="goalName" @bind-Value="newGoal.Name"/>
+    </div>
+
+    <div class="goal-sum-input">
+        <label for="goalSum">Сумма цели:</label>
+        <InputNumber id="goalSum" @bind-Value="newGoal.TargetSum"/>
+    </div>
+
+    <div class="goal-date-input">
+        <label for="goalDate">Дата цели:</label>
+        <InputDate id="goalDate" @bind-Value="newGoal.TargetDate"/>
+    </div>
+
+    <button @onclick="AddGoal">Добавить цель</button>
+</div>
+
+<div class="goals-list">
+    <h2>Список целей</h2>
+    @if (goals.Any())
+    {
+        @foreach (var goal in goals)
+        {
+            <div class="goal-item">
+                <h3>@goal.Name</h3>
+                <div class="goal-progress">
+                    <label>Прогресс:</label>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: @goal.FillPercentage%;"></div>
+                    </div>
+                    <span>@goal.FillPercentage%</span>
+                </div>
+                <p>Цель: @goal.TargetSum.ToString("C")</p>
+                <p>Накоплено: @goal.CurrentSum.ToString("C")</p>
+                <p>Дата цели: @goal.TargetDate.ToShortDateString()</p>
+
+                <div class="add-funds-form">
+                    <h4>Добавить средства</h4>
+                    <div class="add-funds-input">
+                        <label for="@goal.Id">Сумма:</label>
+                        <InputNumber id="@goal.Id" @bind-Value="goal.AmountToAdd"/>
+                    </div>
+                    <button @onclick="@(() => AddFundsToGoal(goal))">Добавить</button>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <p>Список целей пуст.</p>
+    }
+</div>
+
+<style>
+    .add-goal-block {
+        border: 1px solid #ccc;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .add-goal-block h2 {
+        margin-top: 0;
+    }
+
+    .goal-name-input, .goal-sum-input, .goal-date-input {
+        margin-bottom: 10px;
+    }
+
+    .goals-list h2 {
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+    .goal-item {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .goal-item h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    .goal-progress {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .goal-progress label {
+        margin-right: 10px;
+    }
+
+    .progress-bar {
+        background-color: #eee;
+        border-radius: 5px;
+        height: 20px;
+        width: 200px;
+        margin-right: 10px;
+        overflow: hidden; /* Чтобы progress не выходил за рамки */
+    }
+
+    .progress {
+        background-color: #4CAF50; /* Зеленый цвет прогресса */
+        height: 100%;
+        border-radius: 5px;
+        transition: width 0.3s ease; /* Анимация для плавного заполнения */
+    }
+
+    .add-funds-form {
+        margin-top: 15px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+    }
+
+    .add-funds-form h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    .add-funds-input {
+        margin-bottom: 10px;
+    }
+</style>
+
+
+@code {
+
+    private List<Goal> goals = new List<Goal>()
+    {
+        new Goal { Id = 1, Name = "Новый ноутбук", TargetSum = 1500, CurrentSum = 500, TargetDate = DateTime.Now.AddMonths(3) },
+        new Goal { Id = 2, Name = "Отпуск", TargetSum = 3000, CurrentSum = 100, TargetDate = DateTime.Now.AddYears(1) }
+    };
+
+    private NewGoal newGoal = new NewGoal();
+
+    public class Goal
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public decimal TargetSum { get; set; }
+        public decimal CurrentSum { get; set; } = 0;
+        public DateTime TargetDate { get; set; }
+        public decimal AmountToAdd { get; set; } = 0; // Для формы добавления средств
+
+        public int FillPercentage
+        {
+            get
+            {
+                if (TargetSum == 0) return 0; // Чтобы избежать деления на ноль
+                return (int)((CurrentSum / TargetSum) * 100);
+            }
+        }
+    }
+
+    public class NewGoal
+    {
+        public string Name { get; set; } = "";
+        public decimal TargetSum { get; set; }
+        public DateTime TargetDate { get; set; } = DateTime.Now.AddMonths(6); // Пример даты по умолчанию
+    }
+
+
+    private void AddGoal()
+    {
+        goals.Add(new Goal()
+        {
+            Id = goals.Any() ? goals.Max(g => g.Id) + 1 : 1,
+            Name = newGoal.Name,
+            TargetSum = newGoal.TargetSum,
+            TargetDate = newGoal.TargetDate
+        });
+        newGoal = new NewGoal(); // Очистка формы
+    }
+
+    private void AddFundsToGoal(Goal goal)
+    {
+        if (goal.AmountToAdd > 0)
+        {
+            goal.CurrentSum += goal.AmountToAdd;
+            if (goal.CurrentSum > goal.TargetSum)
+            {
+                goal.CurrentSum = goal.TargetSum; // Нельзя накопить больше цели
+            }
+
+            goal.AmountToAdd = 0; // Очистка поля ввода суммы для добавления
+        }
+    }
+
+}
