@@ -50,15 +50,14 @@ public class HttpService : IHttpService
         var user = await _localStorageService.GetItem<User>("user");
         var isApiUrl = !request.RequestUri.IsAbsoluteUri;
         if (user != null && isApiUrl)
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer ", user.AccessToken);
 
         using var response = await _httpClient.SendAsync(request);
 
-        // auto logout on 401 response
+        Console.WriteLine(response.StatusCode);
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            _navigationManager.NavigateTo("logout");
-            return default;
+            await RefreshToken(user);
         }
 
         // throw exception on error response
@@ -69,5 +68,20 @@ public class HttpService : IHttpService
         }
 
         return await response.Content.ReadFromJsonAsync<T>();
+    }
+    
+    private async Task RefreshToken(User user)
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/v1/users/RefreshToken", user.RefreshToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            user = await response.Content.ReadFromJsonAsync<User>();
+            await _localStorageService.SetItem("user", user);
+        }
+        else
+        {
+            _navigationManager.NavigateTo("signout");
+        }
     }
 }

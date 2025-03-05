@@ -1,3 +1,5 @@
-﻿namespace Wallet.Server.Application.Models.Transactions;
+﻿using Wallet.Server.Domain.Enums;
 
-public record GetTransactionsByTypeRequest(Guid UserId, string Type);
+namespace Wallet.Server.Application.Models.Transactions;
+
+public record GetTransactionsByTypeRequest(Guid UserId, TransactionTypes Type);

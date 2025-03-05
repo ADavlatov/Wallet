@@ -16,16 +16,11 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<Transaction>> GetAllTransactionsByType(Guid categoryId, TransactionTypes type, CancellationToken cancellationToken)
+    public async Task<List<Transaction>> GetAllTransactionsByType(Guid userId, TransactionTypes type, CancellationToken cancellationToken)
     {
         var transactions = await db.Transactions
-            .Where(x => x.CategoryId == categoryId && x.Type == type)
+            .Where(x => x.UserId == userId && x.Type == type)
             .ToListAsync(cancellationToken);
-        
-        if (!transactions.Any())
-        {
-            throw new NotFoundException("Transactions not found");
-        }
         
         return transactions;
     }

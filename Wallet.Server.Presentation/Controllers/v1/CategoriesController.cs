@@ -22,12 +22,7 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     [HttpPost("GetCategoriesByType")]
     public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(request.Type, true, out TransactionTypes transactionType))
-        {
-            throw new RequestValidateException();
-        }
-
-        return Ok(await categoriesService.GetCategoriesByType(request.UserId, transactionType, cancellationToken));
+        return Ok(await categoriesService.GetCategoriesByType(request.UserId, request.Type, cancellationToken));
     }
 
     [HttpPost("GetCategoriesByUser")]
@@ -51,13 +46,7 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     [HttpPut]
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
     {
-        var isValid = Enum.TryParse(request.Type, true, out TransactionTypes type);
-        if (request.Type != null && !isValid)
-        {
-            throw new RequestValidateException();
-        }
-
-        await categoriesService.UpdateCategory(request.CategoryId, request.Name, type, cancellationToken);
+        await categoriesService.UpdateCategory(request.CategoryId, request.Name, request.Type, cancellationToken);
 
         return Ok();
     }

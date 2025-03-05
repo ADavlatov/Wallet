@@ -1,3 +1,5 @@
-﻿namespace Wallet.Server.Application.Models.Categories;
+﻿using Wallet.Server.Domain.Enums;
 
-public record UpdateCategoryRequest(Guid CategoryId, string? Name, string? Type);
+namespace Wallet.Server.Application.Models.Categories;
+
+public record UpdateCategoryRequest(Guid CategoryId, string? Name, TransactionTypes? Type);

@@ -1,3 +1,5 @@
-﻿namespace Wallet.Server.Application.Models.Categories;
+﻿using Wallet.Server.Domain.Enums;
 
-public record GetCategoriesByTypeRequest(Guid UserId, string Type);
+namespace Wallet.Server.Application.Models.Categories;
+
+public record GetCategoriesByTypeRequest(Guid UserId, TransactionTypes Type);

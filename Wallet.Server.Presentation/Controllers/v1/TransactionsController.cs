@@ -1,10 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Wallet.Server.Application.Models;
 using Wallet.Server.Application.Models.Transactions;
-using Wallet.Server.Domain.Enums;
-using Wallet.Server.Domain.Exceptions;
-using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
@@ -17,13 +13,8 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpPost("AddTransaction")]
     public async Task<IActionResult> AddTransaction([FromBody] AddTransactionRequest request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(request.Type, true, out TransactionTypes type))
-        {
-            throw new RequestValidateException();
-        }
-
         await transactionsService.AddTransaction(request.UserId, request.CategoryId, request.Name, request.Amount,
-            request.Date, type, cancellationToken);
+            request.Date, request.Type, cancellationToken);
 
         return Ok();
     }
@@ -31,11 +22,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpPost("GetTransactionsByType")]
     public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse(request.Type, true, out TransactionTypes transactionType))
-        {
-            throw new RequestValidateException();
-        }
-        return Ok(await transactionsService.GetTransactionsByType(request.UserId, transactionType, cancellationToken));
+        return Ok(await transactionsService.GetTransactionsByType(request.UserId, request.Type, cancellationToken));
     }
 
     [HttpPost("GetTransactionsByCategory")]
@@ -53,13 +40,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpPut]
     public async Task<IActionResult> UpdateTransaction([FromBody] UpdateTransactionRequest request, CancellationToken cancellationToken)
     {
-        var isValid = Enum.TryParse(request.Type, true, out TransactionTypes type);
-        if (request.Type != null && !isValid)
-        {
-            throw new RequestValidateException();
-        }
-
-        await transactionsService.UpdateTransaction(request.TransactionId, request.Name, request.Amount, request.Date, type, cancellationToken);
+        await transactionsService.UpdateTransaction(request.TransactionId, request.Name, request.Amount, request.Date, request.Type, cancellationToken);
 
         return Ok();
     }
