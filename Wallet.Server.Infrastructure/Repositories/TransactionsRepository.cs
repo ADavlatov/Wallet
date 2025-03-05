@@ -16,26 +16,29 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<List<Transaction>> GetAllTransactionsByType(Guid userId, TransactionTypes type, CancellationToken cancellationToken)
+    public async Task<List<Transaction>> GetAllTransactionsByType(Guid userId, TransactionTypes type,
+        CancellationToken cancellationToken)
     {
         var transactions = await db.Transactions
+            .Include(x => x.Category)
             .Where(x => x.UserId == userId && x.Type == type)
             .ToListAsync(cancellationToken);
-        
+
         return transactions;
     }
 
-    public async Task<List<Transaction>> GetAllTransactionsByCategory(Guid categoryId, CancellationToken cancellationToken)
+    public async Task<List<Transaction>> GetAllTransactionsByCategory(Guid categoryId,
+        CancellationToken cancellationToken)
     {
         var transactions = await db.Transactions
             .Where(x => x.CategoryId == categoryId)
             .ToListAsync(cancellationToken);
-        
+
         if (!transactions.Any())
         {
             throw new NotFoundException("Transactions not found");
         }
-        
+
         return transactions;
     }
 
@@ -43,12 +46,12 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
     {
         var transaction = await db.Transactions
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        
+
         if (transaction is null)
         {
             throw new NotFoundException("Transaction not found");
         }
-        
+
         return transaction;
     }
 
@@ -56,12 +59,12 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
     {
         var transaction = await db.Transactions
             .FirstOrDefaultAsync(x => x.UserId == userId && x.Name == name, cancellationToken);
-        
+
         if (transaction is null)
         {
             throw new NotFoundException("Transaction not found");
         }
-        
+
         return transaction;
     }
 
