@@ -28,11 +28,6 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
         var categories = await db.Categories
             .Where(x => x.UserId == userId)
             .ToListAsync(cancellationToken);
-        
-        if (!categories.Any())
-        {
-            throw new NotFoundException("Categories not found");
-        }
 
         return categories;
     }
@@ -42,11 +37,6 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
         var categories = await db.Categories
             .Where(x => x.UserId == userId && x.Type == transactionType)
             .ToListAsync(cancellationToken);
-        
-        if (!categories.Any())
-        {
-            throw new NotFoundException("Categories not found");
-        }
 
         return categories;
     }

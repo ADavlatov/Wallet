@@ -10,7 +10,7 @@ public class TransactionsService(
     ICategoriesRepository categoriesRepository,
     IUsersRepository usersRepository) : ITransactionsService
 {
-    public async Task AddTransaction(Guid userId, Guid categoryId, string? name, decimal amount, DateTime date,
+    public async Task AddTransaction(Guid userId, Guid categoryId, string? name, decimal amount, DateOnly date,
         TransactionTypes type, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetUserById(userId, cancellationToken);
@@ -43,7 +43,7 @@ public class TransactionsService(
         return await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
     }
 
-    public async Task UpdateTransaction(Guid transactionId, string? name, decimal? amount, DateTime? date,
+    public async Task UpdateTransaction(Guid transactionId, string? name, decimal? amount, DateOnly? date,
         TransactionTypes? type, CancellationToken cancellationToken)
     {
         var transaction = await transactionsRepository.GetTransactionById(transactionId, cancellationToken);

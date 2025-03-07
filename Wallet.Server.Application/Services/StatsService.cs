@@ -28,7 +28,7 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
         {
             foreach (var transaction in incomes)
             {
-                worksheet.Cell(incomeRow, 1).Value = transaction.Date;
+                worksheet.Cell(incomeRow, 1).Value = transaction.Date.ToString();
                 worksheet.Cell(incomeRow, 1).Style.DateFormat.Format = "dd.MM.yyyy";
                 worksheet.Cell(incomeRow, 2).Value = transaction.Category.Name;
                 worksheet.Cell(incomeRow, 3).Value = transaction.Amount;
@@ -54,7 +54,7 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
         {
             foreach (var transaction in expenses)
             {
-                worksheet.Cell(expenseRow, 5).Value = transaction.Date;
+                worksheet.Cell(expenseRow, 5).Value = transaction.Date.ToString();
                 worksheet.Cell(expenseRow, 5).Style.DateFormat.Format = "dd.MM.yyyy";
                 worksheet.Cell(expenseRow, 6).Value = transaction.Category.Name;
                 worksheet.Cell(expenseRow, 7).Value = transaction.Amount;
@@ -73,5 +73,11 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
         workbook.SaveAs(stream);
         var content = stream.ToArray();
         return content;
+    }
+
+    public Task<List<int>> GetStatsByTypAndDateInterval(Guid userId, DateOnly startDate, DateOnly endDate, TransactionTypes type,
+        CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
     }
 }

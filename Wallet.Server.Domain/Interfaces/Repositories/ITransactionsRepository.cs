@@ -10,6 +10,7 @@ public interface ITransactionsRepository
     Task<List<Transaction>> GetAllTransactionsByCategory(Guid categoryId, CancellationToken cancellationToken);
     Task<Transaction> GetTransactionById(Guid id, CancellationToken cancellationToken);
     Task<Transaction> GetTransactionByName(Guid userId, string name, CancellationToken cancellationToken);
+    Task<int> GetTransactionsCountByTypAndDateInterval(Guid userId, TransactionTypes type, DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken);
     Task UpdateTransaction(Transaction updatedTransaction, CancellationToken cancellationToken);
     Task DeleteTransaction(Transaction transaction, CancellationToken cancellationToken);
 }

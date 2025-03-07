@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
-using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Infrastructure.Contexts;
 
@@ -66,6 +65,17 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
         }
 
         return transaction;
+    }
+
+    public async Task<int> GetTransactionsCountByTypAndDateInterval(Guid userId, TransactionTypes type,
+        DateOnly startDate, DateOnly endDate,
+        CancellationToken cancellationToken)
+    {
+        var count = await db.Transactions
+            .CountAsync(x => x.UserId == userId && x.Type == type && x.Date >= startDate && x.Date <= endDate,
+                cancellationToken);
+
+        return count;
     }
 
     public async Task UpdateTransaction(Transaction updatedTransaction, CancellationToken cancellationToken)

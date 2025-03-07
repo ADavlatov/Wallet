@@ -40,7 +40,7 @@ public sealed class WalletContext : DbContext
         public void Configure(EntityTypeBuilder<Transaction> builder)
         {
             builder.HasKey(x => x.Id);
-            builder.HasOne(x => x.Category).WithMany(x => x.Transactions).HasForeignKey(x => x.CategoryId);
+            //builder.HasOne(x => x.Category).WithMany(x => x.Transactions).HasForeignKey(x => x.CategoryId);
         }
     }
 
