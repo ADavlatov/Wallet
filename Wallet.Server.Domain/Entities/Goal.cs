@@ -6,6 +6,7 @@ public class Goal(string name, decimal amount, DateOnly? deadline = null)
     public User User { get; init; }
     public Guid UserId { get; init; }
     public string Name { get; set; } = name;
-    public Decimal Amount { get; set; } = amount;
+    public decimal Amount { get; set; } = amount;
+    public decimal Value { get; set; } = 0;
     public DateOnly? Deadline { get; set; } = deadline;
 }
