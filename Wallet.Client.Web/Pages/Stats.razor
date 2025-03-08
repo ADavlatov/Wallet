@@ -1,14 +1,32 @@
 ﻿@page "/stats"
 @using BlazorBootstrap
 
-<div class="container-fluid overflow-x-auto" style="display: flex">
-    <div style="display: inline-block; width: 50%;">
-        <LineChart @ref="lineChart" Width="900"/>
+<div class="container-fluid overflow-x-auto">
+    <div style="display: inline-block; width: 80%;">
+        <LineChart @ref="lineChart"/>
     </div>
-    <div style="display: inline-block; width: 50%;">
-        <PieChart @ref="pieChart2" Width="500"/>
+    <div style="display: grid; width: 30%;">
+        <PieChart @ref="pieChart2"/>
     </div>
 </div>
+
+<style>
+    .container-fluid.overflow-x-auto {
+        display: flex;
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+    }
+
+    .container-fluid.overflow-x-auto > div {
+        margin-bottom: 20px;
+    }
+
+    .container-fluid.overflow-x-auto > div {
+        max-width: 1200px; 
+        width: 100%; 
+    }
+</style>
 
 @code {
     private LineChart lineChart = default!;
