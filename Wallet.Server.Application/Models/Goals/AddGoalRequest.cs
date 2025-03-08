@@ -1,3 +1,3 @@
 namespace Wallet.Server.Application.Models.Goals;
 
-public record AddGoalRequest(Guid UserId, string Name, decimal Amount, DateOnly? Deadline);
+public record AddGoalRequest(Guid UserId, string Name, decimal TargetSum, DateOnly? Deadline);

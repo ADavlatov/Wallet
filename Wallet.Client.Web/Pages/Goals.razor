@@ -1,4 +1,10 @@
 ﻿@page "/Goals"
+@using System.Net.Http.Headers
+@using Wallet.Client.Web.Entities
+@using Wallet.Client.Web.Interfaces
+@using Wallet.Client.Web.Models
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
 
 <PageTitle>Цели</PageTitle>
 
@@ -11,17 +17,17 @@
 
     <div class="goal-name-input">
         <label for="goalName">Название цели:</label>
-        <InputText id="goalName" @bind-Value="newGoal.Name"/>
+        <InputText id="goalName" @bind-Value="_newGoal.Name"/>
     </div>
 
     <div class="goal-sum-input">
         <label for="goalSum">Сумма цели:</label>
-        <InputNumber id="goalSum" @bind-Value="newGoal.TargetSum"/>
+        <InputNumber id="goalSum" @bind-Value="_newGoal.TargetSum"/>
     </div>
 
     <div class="goal-date-input">
         <label for="goalDate">Дата цели:</label>
-        <InputDate id="goalDate" @bind-Value="newGoal.TargetDate"/>
+        <InputDate id="goalDate" @bind-Value="_newGoal.Deadline"/>
     </div>
 
     <button @onclick="AddGoal">Добавить цель</button>
@@ -29,22 +35,22 @@
 
 <div class="goals-list">
     <h2>Список целей</h2>
-    @if (goals.Any())
+    @if (_goals.Any())
     {
-        @foreach (var goal in goals)
+        @foreach (var goal in _goals)
         {
             <div class="goal-item">
                 <h3>@goal.Name</h3>
                 <div class="goal-progress">
                     <label>Прогресс:</label>
                     <div class="progress-bar">
-                        <div class="progress" style="width: @goal.FillPercentage%;"></div>
+                        <div class="progress" style="width: @goal.GetPercentage%;"></div>
                     </div>
-                    <span>@goal.FillPercentage%</span>
+                    <span>@goal.GetPercentage%</span>
                 </div>
                 <p>Цель: @goal.TargetSum.ToString("C")</p>
                 <p>Накоплено: @goal.CurrentSum.ToString("C")</p>
-                <p>Дата цели: @goal.TargetDate.ToShortDateString()</p>
+                <p>Дата цели: @goal.Deadline</p>
 
                 <div class="add-funds-form">
                     <h4>Добавить средства</h4>
@@ -52,7 +58,7 @@
                         <label for="@goal.Id">Сумма:</label>
                         <InputNumber id="@goal.Id" @bind-Value="goal.AmountToAdd"/>
                     </div>
-                    <button @onclick="@(() => AddFundsToGoal(goal))">Добавить</button>
+                    <button @onclick="@(() => AddSumToGoal(goal))">Добавить</button>
                 </div>
             </div>
         }
@@ -64,6 +70,7 @@
 </div>
 
 <style>
+
     .add-goal-block {
         border: 1px solid #ccc;
         padding: 20px;
@@ -136,68 +143,131 @@
     }
 </style>
 
-
 @code {
 
-    private List<Goal> goals = new List<Goal>()
+    private List<Goal> _goals = new();
+    private NewGoal _newGoal = new();
+
+    protected async override Task OnInitializedAsync()
     {
-        new Goal { Id = 1, Name = "Новый ноутбук", TargetSum = 1500, CurrentSum = 500, TargetDate = DateTime.Now.AddMonths(3) },
-        new Goal { Id = 2, Name = "Отпуск", TargetSum = 3000, CurrentSum = 100, TargetDate = DateTime.Now.AddYears(1) }
-    };
+        await GetGoals();
+    }
 
-    private NewGoal newGoal = new NewGoal();
-
-    public class Goal
+    private async Task AddGoal()
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public decimal TargetSum { get; set; }
-        public decimal CurrentSum { get; set; } = 0;
-        public DateTime TargetDate { get; set; }
-        public decimal AmountToAdd { get; set; } = 0; // Для формы добавления средств
+        var user = await LocalStorageService.GetItem<User>("user");
+        var addGoalRequest = new AddGoalRequest(user.UserId, _newGoal.Name, _newGoal.TargetSum, _newGoal.Deadline);
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        public int FillPercentage
+        var response = await HttpClient.PostAsJsonAsync("api/v1/goals/AddGoal", addGoalRequest);
+        if (response.IsSuccessStatusCode)
         {
-            get
-            {
-                if (TargetSum == 0) return 0; // Чтобы избежать деления на ноль
-                return (int)((CurrentSum / TargetSum) * 100);
-            }
+            _newGoal = new NewGoal();
+            await GetGoals();
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
         }
     }
 
-    public class NewGoal
+    private async Task GetGoals()
     {
-        public string Name { get; set; } = "";
-        public decimal TargetSum { get; set; }
-        public DateTime TargetDate { get; set; } = DateTime.Now.AddMonths(6); // Пример даты по умолчанию
-    }
+        var user = await LocalStorageService.GetItem<User>("user");
+        var getGoalsRequest = new GetGoalsRequest(user.UserId);
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-
-    private void AddGoal()
-    {
-        goals.Add(new Goal()
+        var response = await HttpClient.PostAsJsonAsync("api/v1/goals/GetGoals", getGoalsRequest);
+        if (response.IsSuccessStatusCode)
         {
-            Id = goals.Any() ? goals.Max(g => g.Id) + 1 : 1,
-            Name = newGoal.Name,
-            TargetSum = newGoal.TargetSum,
-            TargetDate = newGoal.TargetDate
-        });
-        newGoal = new NewGoal(); // Очистка формы
-    }
-
-    private void AddFundsToGoal(Goal goal)
-    {
-        if (goal.AmountToAdd > 0)
+            _goals = await response.Content.ReadFromJsonAsync<List<Goal>>();
+            StateHasChanged();
+        }
+        else
         {
-            goal.CurrentSum += goal.AmountToAdd;
-            if (goal.CurrentSum > goal.TargetSum)
-            {
-                goal.CurrentSum = goal.TargetSum; // Нельзя накопить больше цели
-            }
-
-            goal.AmountToAdd = 0; // Очистка поля ввода суммы для добавления
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
         }
     }
+
+    private async Task AddSumToGoal(Goal goal)
+    {
+        var user = await LocalStorageService.GetItem<User>("user");
+        var addSumToGoalRequest = new AddSumToGoalRequest(goal.Id, goal.AmountToAdd);
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+
+        var response = await HttpClient.PostAsJsonAsync("api/v1/goals/AddSumToGoal", addSumToGoalRequest);
+        if (response.IsSuccessStatusCode)
+        {
+            
+            await GetGoals();
+            StateHasChanged();
+        }
+        else
+        {
+            Console.WriteLine(await response.Content.ReadAsStringAsync());
+        }
+    }
+
+    // private List<Goal> goals = new List<Goal>()
+    // {
+    //     new Goal { Id = 1, Name = "Новый ноутбук", TargetSum = 1500, CurrentSum = 500, TargetDate = DateTime.Now.AddMonths(3) },
+    //     new Goal { Id = 2, Name = "Отпуск", TargetSum = 3000, CurrentSum = 100, TargetDate = DateTime.Now.AddYears(1) }
+    // };
+    //
+    // private NewGoal newGoal = new NewGoal();
+    //
+    // public class Goal
+    // {
+    //     public int Id { get; set; }
+    //     public string Name { get; set; }
+    //     public decimal TargetSum { get; set; }
+    //     public decimal CurrentSum { get; set; } = 0;
+    //     public DateTime TargetDate { get; set; }
+    //     public decimal AmountToAdd { get; set; } = 0; // Для формы добавления средств
+    //
+    //     public int FillPercentage
+    //     {
+    //         get
+    //         {
+    //             if (TargetSum == 0) return 0; // Чтобы избежать деления на ноль
+    //             return (int)((CurrentSum / TargetSum) * 100);
+    //         }
+    //     }
+    // }
+    //
+    // public class NewGoal
+    // {
+    //     public string Name { get; set; } = "";
+    //     public decimal TargetSum { get; set; }
+    //     public DateTime TargetDate { get; set; } = DateTime.Now.AddMonths(6); // Пример даты по умолчанию
+    // }
+    //
+    //
+    // private void AddGoal()
+    // {
+    //     goals.Add(new Goal()
+    //     {
+    //         Id = goals.Any() ? goals.Max(g => g.Id) + 1 : 1,
+    //         Name = newGoal.Name,
+    //         TargetSum = newGoal.TargetSum,
+    //         TargetDate = newGoal.TargetDate
+    //     });
+    //     newGoal = new NewGoal(); // Очистка формы
+    // }
+    //
+    // private void AddFundsToGoal(Goal goal)
+    // {
+    //     if (goal.AmountToAdd > 0)
+    //     {
+    //         goal.CurrentSum += goal.AmountToAdd;
+    //         if (goal.CurrentSum > goal.TargetSum)
+    //         {
+    //             goal.CurrentSum = goal.TargetSum; // Нельзя накопить больше цели
+    //         }
+    //
+    //         goal.AmountToAdd = 0; // Очистка поля ввода суммы для добавления
+    //     }
+    // }
 
 }

@@ -18,6 +18,11 @@ public class GoalsService(IGoalsRepository goalsRepository, IUsersRepository use
             },
             cancellationToken);
     }
+    public async Task AddSumToGoal(Guid goalId, decimal sum, CancellationToken cancellationToken)
+    {
+        var goal = await goalsRepository.GetGoalById(goalId, cancellationToken);
+        await goalsRepository.AddSumtoGoal(goal, sum, cancellationToken);
+    }
     public async Task<List<Goal>> GetGoalsByUserId(Guid userId, CancellationToken cancellationToken)
     {
         return await goalsRepository.GetAllGoalsByUserId(userId, cancellationToken);
@@ -31,7 +36,7 @@ public class GoalsService(IGoalsRepository goalsRepository, IUsersRepository use
         var goal = await goalsRepository.GetGoalById(goalId, cancellationToken);
         
         goal.Name = name ?? goal.Name;
-        goal.Amount = amount ?? goal.Amount;
+        goal.TargetSum = amount ?? goal.TargetSum;
         goal.Deadline = deadline ?? goal.Deadline;
         
         await goalsRepository.UpdateGoal(goal, cancellationToken);

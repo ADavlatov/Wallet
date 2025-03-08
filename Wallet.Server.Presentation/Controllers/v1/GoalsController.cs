@@ -13,7 +13,14 @@ public class GoalsController(IGoalsService goalsService) : ControllerBase
     [HttpPost("AddGoal")]
     public async Task<IActionResult> AddGoal([FromBody] AddGoalRequest request, CancellationToken cancellationToken)
     {
-        await goalsService.AddGoal(request.UserId, request.Name, request.Amount, request.Deadline, cancellationToken);
+        await goalsService.AddGoal(request.UserId, request.Name, request.TargetSum, request.Deadline, cancellationToken);
+        return Ok();
+    }
+
+    [HttpPost("AddSumToGoal")]
+    public async Task<IActionResult> AddSumToGoal([FromBody] AddSumToGoalRequest request, CancellationToken cancellationToken)
+    {
+        await goalsService.AddSumToGoal(request.GoalId, request.Sum, cancellationToken);
         return Ok();
     }
 
@@ -32,7 +39,7 @@ public class GoalsController(IGoalsService goalsService) : ControllerBase
     [HttpPut]
     public async Task<IActionResult> UpdateGoal([FromBody] UpdateGoalRequest request, CancellationToken cancellationToken)
     {
-        await goalsService.UpdateGoal(request.GoalId, request.Name, request.Amount, request.Deadline, cancellationToken);
+        await goalsService.UpdateGoal(request.GoalId, request.Name, request.TargetSum, request.Deadline, cancellationToken);
         return Ok();
     }
 
