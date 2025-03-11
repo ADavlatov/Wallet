@@ -1,0 +1,63 @@
+﻿@page "/account"
+@using System.Net.Http.Headers
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using Wallet.Client.Web.Entities
+@using Wallet.Client.Web.Interfaces
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
+
+<div class="container mt-4">
+    <div id="content" style="margin-top: 100px;">
+        <div id="profile" class="tab-pane fade show active">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ваш профиль</h5>
+                    <p class="card-text">Имя: @_user.Username</p>
+                    <p class="card-text">Telegram: @(_user.TelegramUserId != null ? "true" : "false")</p>
+                    <a href="#" class="btn btn-primary">Редактировать профиль</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private UserModel _user = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await LocalStorageService.GetItem<User>("user");
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+
+        var response = await HttpClient.GetAsync("api/v1/users/" + user.UserId);
+        var content = await response.Content.ReadAsStringAsync();
+        if (response.IsSuccessStatusCode)
+        {
+            _user = JsonSerializer.Deserialize<UserModel>(content);
+        }
+        else
+        {
+            Console.WriteLine(content);
+        }
+    }
+    
+    public class UserModel
+    {
+        [JsonPropertyName("id")] public Guid Id { get; set; }
+
+        [JsonPropertyName("telegramUserId")] public string? TelegramUserId { get; set; }
+
+        [JsonPropertyName("username")] public string Username { get; set; }
+
+        [JsonPropertyName("passwordHash")] public string PasswordHash { get; set; }
+
+        [JsonPropertyName("passwordSalt")] public string PasswordSalt { get; set; }
+
+        [JsonPropertyName("transactions")] public List<Transaction> Transactions { get; set; }
+
+        [JsonPropertyName("categories")] public List<Category> Categories { get; set; }
+
+        [JsonPropertyName("goals")] public List<Goal> Goals { get; set; }
+    }
+}

@@ -1,7 +1,9 @@
 ﻿using ClosedXML.Excel;
+using Wallet.Server.Domain.DTOs;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Domain.Interfaces.Services;
+using Wallet.Server.Infrastructure.Helpers;
 
 namespace Wallet.Server.Application.Services;
 
@@ -9,8 +11,12 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
 {
     public async Task<byte[]> GenerateExcelFile(Guid userId, CancellationToken cancellationToken)
     {
-        var incomes = await transactionsRepository.GetAllTransactionsByType(userId, TransactionTypes.Income, cancellationToken); // Получаем доходы
-        var expenses = await transactionsRepository.GetAllTransactionsByType(userId, TransactionTypes.Expense, cancellationToken); // Получаем расходы
+        var incomes =
+            await transactionsRepository.GetAllTransactionsByType(userId, TransactionTypes.Income,
+                cancellationToken); // Получаем доходы
+        var expenses =
+            await transactionsRepository.GetAllTransactionsByType(userId, TransactionTypes.Expense,
+                cancellationToken); // Получаем расходы
 
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Доходы");
@@ -75,9 +81,67 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
         return content;
     }
 
-    public Task<List<int>> GetStatsByTypAndDateInterval(Guid userId, DateOnly startDate, DateOnly endDate, TransactionTypes type,
+    public async Task<LineChartDto> GetLineChartData(Guid userId, string period, CancellationToken cancellationToken)
+    {
+        (DateTime startDate, DateTime endDate) = GetPeriodDates(period);
+        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId,
+            DateOnly.FromDateTime(startDate), DateOnly.FromDateTime(endDate), cancellationToken);
+
+        int periodLength = (endDate - startDate).Days + 1;
+        decimal[] incomes = new decimal[periodLength];
+        decimal[] expenses = new decimal[periodLength];
+        var date = DateOnly.FromDateTime(startDate);
+
+        for (int i = 0; i < periodLength; i++)
+        {
+            var currentDate = date.AddDays(i);
+            incomes[i] = transactions
+                .Where(t => t.Type == TransactionTypes.Income && t.Date == currentDate)
+                .Sum(t => t.Amount);
+
+            expenses[i] = transactions
+                .Where(t => t.Type == TransactionTypes.Expense && t.Date == currentDate)
+                .Sum(t => t.Amount);
+        }
+
+        return new LineChartDto(incomes, expenses);
+    }
+
+    public async Task<Dictionary<string, decimal>> GetPieChartData(Guid userId, TransactionTypes type, string period,
         CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        (DateTime startDate, DateTime endDate) = GetPeriodDates(period);
+        var expenses = await transactionsRepository.GetTransactionsByTypeAndPeriod(userId, type,
+            DateOnly.FromDateTime(startDate), DateOnly.FromDateTime(endDate), cancellationToken);
+
+        return expenses
+            .GroupBy(e => e.Category)
+            .ToDictionary(g => g.Key.Name, g => g.Sum(e => e.Amount));
+    }
+
+    private (DateTime, DateTime) GetPeriodDates(string period)
+    {
+        DateTime now = DateTime.Now;
+        DateTime startDate, endDate;
+
+        switch (period.ToLower())
+        {
+            case "week":
+                startDate = now.StartOfWeek(DayOfWeek.Monday);
+                endDate = startDate.AddDays(6);
+                break;
+            case "month":
+                startDate = new DateTime(now.Year, now.Month, 1);
+                endDate = startDate.AddMonths(1).AddDays(-1);
+                break;
+            case "year":
+                startDate = new DateTime(now.Year, 1, 1);
+                endDate = new DateTime(now.Year, 12, 31);
+                break;
+            default:
+                throw new ArgumentException("Неверный период: " + period);
+        }
+
+        return (startDate, endDate);
     }
 }

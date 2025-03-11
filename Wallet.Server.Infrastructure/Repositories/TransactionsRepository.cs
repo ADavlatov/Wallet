@@ -67,16 +67,22 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
         return transaction;
     }
 
-    public async Task<int> GetTransactionsCountByTypAndDateInterval(Guid userId, TransactionTypes type,
-        DateOnly startDate, DateOnly endDate,
+    public async Task<List<Transaction>> GetTransactionsByPeriod(Guid userId, DateOnly startDate, DateOnly endDate,
         CancellationToken cancellationToken)
     {
-        var count = await db.Transactions
-            .CountAsync(x => x.UserId == userId && x.Type == type && x.Date >= startDate && x.Date <= endDate,
-                cancellationToken);
-
-        return count;
+        return await db.Transactions
+            .Where(t => t.Date >= startDate && t.Date <= endDate)
+            .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<Transaction>> GetTransactionsByTypeAndPeriod(Guid userId, TransactionTypes type, DateOnly startDate, DateOnly endDate,
+        CancellationToken cancellationToken)
+    {
+        return await db.Transactions.Include(x => x.Category)
+            .Where(t => t.Date >= startDate && t.Date <= endDate && t.Type == type)
+            .ToListAsync(cancellationToken);
+    }
+
 
     public async Task UpdateTransaction(Transaction updatedTransaction, CancellationToken cancellationToken)
     {

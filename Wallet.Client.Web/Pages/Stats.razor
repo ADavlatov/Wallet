@@ -1,21 +1,40 @@
 ﻿@page "/stats"
+@using System.Net.Http.Headers
 @using BlazorBootstrap
+@using Wallet.Client.Web.Entities
+@using Wallet.Client.Web.Helpers
+@using Wallet.Client.Web.Interfaces
+@using Wallet.Client.Web.Models
+@inject HttpClient Http
+@inject ILocalStorageService LocalStorageService
 
 <div class="container-fluid overflow-x-auto">
-    <div style="display: inline-block; width: 80%;">
+    <div>
+        <select class="form-select" @onchange="@PeriodChanged">
+            <option value="week">Неделя</option>
+            <option value="month">Месяц</option>
+            <option value="year">Год</option>
+        </select>
+    </div>
+    <div style="display: inline-block; width: 80%; margin-bottom: 50px">
         <LineChart @ref="lineChart"/>
     </div>
-    <div style="display: grid; width: 30%;">
-        <PieChart @ref="pieChart2"/>
+    <div style="display: flex; width: 80%;">
+        <div style="display: grid; width: 50%;">
+            <PieChart @ref="pieChart2"/>
+        </div>
+        <div style="display: grid; width: 50%;">
+            <PieChart @ref="pieChart3"/>
+        </div>
     </div>
 </div>
 
 <style>
     .container-fluid.overflow-x-auto {
         display: flex;
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     .container-fluid.overflow-x-auto > div {
@@ -23,49 +42,106 @@
     }
 
     .container-fluid.overflow-x-auto > div {
-        max-width: 1200px; 
-        width: 100%; 
+        max-width: 1200px;
+        width: 100%;
     }
 </style>
 
 @code {
-    private LineChart lineChart = default!;
-    private LineChartOptions lineChartOptions = default!;
-    private ChartData chartData = default!;
+    //:TODO говнокод
+    private LineChart lineChart = new();
+    private LineChartOptions lineChartOptions = new();
+    private ChartData chartData = new();
 
-    private PieChart pieChart2 = default!;
-    private PieChartOptions pieChartOptions2 = default!;
-    private ChartData chartData2 = default!;
+    private PieChart pieChart2 = new();
+    private PieChartOptions pieChartOptions2 = new();
+    private ChartData chartData2 = new();
 
-    protected override void OnInitialized()
+    private PieChart pieChart3 = new();
+    private PieChartOptions pieChartOptions3 = new();
+    private ChartData chartData3 = new();
+
+    private string selectedPeriod = "week";
+
+    public class LineChartResponse
+    {
+        public decimal[]? incomes { get; set; }
+        public decimal[]? expenses { get; set; }
+    }
+
+    public class PieChartResponse : Dictionary<string, decimal>
+    {
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task PeriodChanged(ChangeEventArgs e)
+    {
+        selectedPeriod = e.Value?.ToString() ?? "week";
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        await LoadLineChartData();
+        await LoadPieChartData();
+        await LoadPieChartData2(); // Загрузка данных для второго pie chart
+        await InitializeCharts(); // Инициализация графиков после загрузки данных
+    }
+
+    private async Task LoadLineChartData()
     {
         var colors = ColorUtility.CategoricalTwelveColors;
+        LineChartResponse? lineData = new();
 
-        // Data for Line Chart
-        var labels = new List<string> { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
+        var user = await LocalStorageService.GetItem<User>("user");
+        var request = new LineChartRequest(user.UserId, selectedPeriod);
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/v1/stats/GetLineChartData", request);
+            lineData = await response.Content.ReadFromJsonAsync<LineChartResponse>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading line chart data: {ex.Message}");
+            return;
+        }
+
+        if (lineData?.incomes == null || lineData?.expenses == null)
+        {
+            Console.WriteLine("Invalid line chart data received from API.");
+            return;
+        }
+
+        List<string> labels = GetLabelsForPeriod(selectedPeriod);
         var datasets = new List<IChartDataset>();
 
-        var dataset1 = new LineChartDataset
+        var expenseDataset = new LineChartDataset
         {
             Label = "Расходы",
-            Data = new List<double?> { 7265791, 5899643, 6317759, 6315641, 5338211, 8496306, 7568556, 8538933, 8274297, 8657298, 7548388, 7764845 },
+            Data = lineData.expenses.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal[] to List<double?>
             BackgroundColor = colors[0],
             BorderColor = colors[0],
             BorderWidth = 2,
             HoverBorderWidth = 4,
         };
-        datasets.Add(dataset1);
+        datasets.Add(expenseDataset);
 
-        var dataset2 = new LineChartDataset
+        var incomeDataset = new LineChartDataset
         {
             Label = "Доходы",
-            Data = new List<double?> { 1809499, 1816642, 2122410, 1809499, 1850793, 1846743, 1954797, 2391313, 1983430, 2469918, 2633303, 2821149 },
+            Data = lineData.incomes.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal[] to List<double?>
             BackgroundColor = colors[1],
             BorderColor = colors[1],
             BorderWidth = 2,
             HoverBorderWidth = 4,
         };
-        datasets.Add(dataset2);
+        datasets.Add(incomeDataset);
 
         chartData = new ChartData { Labels = labels, Datasets = datasets };
 
@@ -73,54 +149,202 @@
         lineChartOptions.Responsive = true;
         lineChartOptions.Interaction = new Interaction { Mode = InteractionMode.Index };
 
-        lineChartOptions.Plugins.Title!.Text = "Операции за 2024";
+        string periodTitle;
+        switch (selectedPeriod)
+        {
+            case "week":
+                periodTitle = "Неделю";
+                break;
+            case "month":
+                periodTitle = "Месяц";
+                break;
+            case "year":
+                periodTitle = "Год";
+                break;
+            default:
+                periodTitle = "Период";
+                break;
+        }
+
+        lineChartOptions.Plugins.Title!.Text = $"Доходы и расходы за {periodTitle}";
         lineChartOptions.Plugins.Title.Display = true;
+    }
 
-        // Data for Pie Chart
-        var labels2 = new List<string> { "Категория 1", "Категория 2" };
-        var datasets2 = new List<IChartDataset>();
 
-        // Calculate total expenses and incomes
-        double totalExpenses = 0;
-        foreach (var expense in new List<double?> { 7265791, 5899643, 6317759, 6315641, 5338211, 8496306, 7568556, 8538933, 8274297, 8657298, 7548388, 7764845 })
+    private async Task LoadPieChartData()
+    {
+        var colors = ColorUtility.CategoricalTwelveColors;
+        PieChartResponse? pieData = new();
+        var user = await LocalStorageService.GetItem<User>("user");
+        var request = new GetPieChartRequest(user.UserId, selectedPeriod, 1); // Используем 1 для первого pie chart
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        try
         {
-            totalExpenses += expense ?? 0;
+            var response = await Http.PostAsJsonAsync("api/v1/stats/GetPieChartData", request);
+            pieData = await response.Content.ReadFromJsonAsync<PieChartResponse>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading pie chart data: {ex.Message}");
+            return;
         }
 
-        double totalIncomes = 0;
-        foreach (var income in new List<double?> { 1809499, 1816642, 2122410, 1809499, 1850793, 1846743, 1954797, 2391313, 1983430, 2469918, 2633303, 2821149 })
+        if (pieData == null)
         {
-            totalIncomes += income ?? 0;
+            Console.WriteLine("Invalid pie chart data received from API.");
+            return;
         }
 
+        var labels2 = pieData.Keys.ToList();
         var dataset3 = new PieChartDataset
         {
             Label = "Расходы по категориям",
-            Data = new List<double?> { totalExpenses, totalIncomes },
-            BackgroundColor = new List<string> { colors[0], colors[1] },
-            BorderColor = new List<string> { colors[0], colors[1] },
-            BorderWidth = new List<double> { 2, 2 },
-            HoverBorderWidth = new List<double> { 4, 4 },
+            Data = pieData.Values.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal values to double?
+            BackgroundColor = colors.Take(labels2.Count).ToList(),
+            BorderColor = colors.Take(labels2.Count).ToList(),
+            BorderWidth = Enumerable.Repeat(2.0, labels2.Count).ToList(),
+            HoverBorderWidth = Enumerable.Repeat(4.0, labels2.Count).ToList(),
         };
-        datasets2.Add(dataset3);
+        var datasets2 = new List<IChartDataset> { dataset3 };
 
         chartData2 = new ChartData { Labels = labels2, Datasets = datasets2 };
 
         pieChartOptions2 = new();
         pieChartOptions2.Responsive = true;
-        pieChartOptions2.Plugins.Title!.Text = "Расходы по категориям за 2024 год";
+        string periodTitle;
+        switch (selectedPeriod)
+        {
+            case "week":
+                periodTitle = "неделю";
+                break;
+            case "month":
+                periodTitle = "месяц";
+                break;
+            case "year":
+                periodTitle = "год";
+                break;
+            default:
+                periodTitle = "период";
+                break;
+        }
+
+        pieChartOptions2.Plugins.Title!.Text = $"Расходы по категориям за {periodTitle}";
         pieChartOptions2.Plugins.Title.Display = true;
+    }
+
+    private async Task LoadPieChartData2() 
+    {
+        var colors = ColorUtility.CategoricalTwelveColors;
+        PieChartResponse? pieData = new();
+        var user = await LocalStorageService.GetItem<User>("user");
+        var request = new GetPieChartRequest(user.UserId, selectedPeriod, 0); 
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/v1/stats/GetPieChartData", request);
+            pieData = await response.Content.ReadFromJsonAsync<PieChartResponse>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading pie chart data 2: {ex.Message}");
+            return;
+        }
+
+        if (pieData == null)
+        {
+            Console.WriteLine("Invalid pie chart data received from API 2.");
+            return;
+        }
+
+        var labels3 = pieData.Keys.ToList();
+        var dataset4 = new PieChartDataset
+        {
+            Label = "Доходы по категориям", // Изменен Label для второго pie chart
+            Data = pieData.Values.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal values to double?
+            BackgroundColor = colors.Skip(labels3.Count).Take(labels3.Count).ToList(), // Используем другие цвета, чтобы отличить от первого pie chart
+            BorderColor = colors.Skip(labels3.Count).Take(labels3.Count).ToList(),
+            BorderWidth = Enumerable.Repeat(2.0, labels3.Count).ToList(),
+            HoverBorderWidth = Enumerable.Repeat(4.0, labels3.Count).ToList(),
+        };
+        var datasets3 = new List<IChartDataset> { dataset4 };
+
+        chartData3 = new ChartData { Labels = labels3, Datasets = datasets3 };
+
+        pieChartOptions3 = new();
+        pieChartOptions3.Responsive = true;
+        string periodTitle;
+        switch (selectedPeriod)
+        {
+            case "week":
+                periodTitle = "неделю";
+                break;
+            case "month":
+                periodTitle = "месяц";
+                break;
+            case "year":
+                periodTitle = "год";
+                break;
+            default:
+                periodTitle = "период";
+                break;
+        }
+
+        pieChartOptions3.Plugins.Title!.Text = $"Доходы по категориям за {periodTitle}"; // Изменен Title для второго pie chart
+        pieChartOptions3.Plugins.Title.Display = true;
+    }
+
+    private async Task InitializeCharts()
+    {
+        if (chartData.Datasets != null)
+        {
+            await lineChart.InitializeAsync(chartData, lineChartOptions);
+        }
+        if (chartData2.Datasets != null)
+        {
+            await pieChart2.InitializeAsync(chartData2, pieChartOptions2);
+        }
+         if (chartData3.Datasets != null) // Инициализация pieChart3
+        {
+            await pieChart3.InitializeAsync(chartData3, pieChartOptions3);
+        }
+    }
+
+
+    private List<string> GetLabelsForPeriod(string period)
+    {
+        var labels = new List<string>();
+        switch (period)
+        {
+            case "week":
+                for (int i = 0; i < 7; i++)
+                {
+                    labels.Add(DateTime.Now.StartOfWeek(DayOfWeek.Monday).AddDays(i).ToString("ddd", new System.Globalization.CultureInfo("ru-RU"))); // Short day names in Russian
+                }
+
+                break;
+            case "month":
+                int daysInMonth = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
+                for (int i = 1; i <= daysInMonth; i++)
+                {
+                    labels.Add(i.ToString());
+                }
+
+                break;
+            case "year":
+                var monthNames = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
+                for (int i = 0; i < 12; i++)
+                {
+                    labels.Add(monthNames[i].Substring(0, 3).ToLower());
+                }
+
+                break;
+        }
+
+        return labels;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
-        {
-            await lineChart.InitializeAsync(chartData, lineChartOptions);
-            await pieChart2.InitializeAsync(chartData2, pieChartOptions2);
-        }
-
         await base.OnAfterRenderAsync(firstRender);
     }
-
 }
