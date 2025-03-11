@@ -14,17 +14,18 @@ public class GoalsRepository(WalletContext db) : IGoalsRepository
         db.Goals.Add(goal);
         await db.SaveChangesAsync(cancellationToken);
     }
+    public async Task AddSumtoGoal(Goal goal, decimal sum, CancellationToken cancellationToken)
+    {
+        goal.CurrentSum += sum;
+        db.Goals.Update(goal);
+        await db.SaveChangesAsync(cancellationToken);
+    }
 
     public async Task<List<Goal>> GetAllGoalsByUserId(Guid userId, CancellationToken cancellationToken)
     {
         var goals = await db.Goals
             .Where(x => x.UserId == userId)
             .ToListAsync(cancellationToken);
-        
-        if (!goals.Any())
-        {
-            throw new NotFoundException("Goals not found");
-        }
 
         return goals;
     }

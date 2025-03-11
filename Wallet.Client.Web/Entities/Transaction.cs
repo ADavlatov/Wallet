@@ -5,5 +5,5 @@ public class Transaction
     public string CategoryId { get; set; }
     public string? Name { get; set; }
     public decimal Amount { get; set; }
-    public DateTime Date { get; set; } = DateTime.Now;
+    public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 }

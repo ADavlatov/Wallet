@@ -36,10 +36,10 @@ public class UsersRepository(WalletContext db) : IUsersRepository
         return users;
     }
 
-    public async Task<User> GetUserById(Guid id, CancellationToken cancellationToken)
+    public async Task<User> GetUserById(Guid userId, CancellationToken cancellationToken)
     {
         var user = await db.Users
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
         
         if (user is null)
         {

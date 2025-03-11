@@ -46,7 +46,6 @@ public class HttpService : IHttpService
 
     private async Task<T> SendRequest<T>(HttpRequestMessage request)
     {
-        // add jwt auth header if user is logged in and request is to the api url
         var user = await _localStorageService.GetItem<User>("user");
         var isApiUrl = !request.RequestUri.IsAbsoluteUri;
         if (user != null && isApiUrl)
@@ -60,7 +59,6 @@ public class HttpService : IHttpService
             await RefreshToken(user);
         }
 
-        // throw exception on error response
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
