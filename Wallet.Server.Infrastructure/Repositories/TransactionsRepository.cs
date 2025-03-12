@@ -71,12 +71,13 @@ public class TransactionsRepository(WalletContext db) : ITransactionsRepository
         CancellationToken cancellationToken)
     {
         return await db.Transactions
+            .Include(x => x.Category)
             .Where(t => t.Date >= startDate && t.Date <= endDate)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<List<Transaction>> GetTransactionsByTypeAndPeriod(Guid userId, TransactionTypes type, DateOnly startDate, DateOnly endDate,
-        CancellationToken cancellationToken)
+    public async Task<List<Transaction>> GetTransactionsByTypeAndPeriod(Guid userId, TransactionTypes type,
+        DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken)
     {
         return await db.Transactions.Include(x => x.Category)
             .Where(t => t.Date >= startDate && t.Date <= endDate && t.Type == type)

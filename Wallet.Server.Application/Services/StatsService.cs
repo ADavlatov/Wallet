@@ -9,14 +9,11 @@ namespace Wallet.Server.Application.Services;
 
 public class StatsService(ITransactionsRepository transactionsRepository) : IStatsService
 {
-    public async Task<byte[]> GenerateExcelFile(Guid userId, CancellationToken cancellationToken)
+    public async Task<byte[]> GenerateExcelFile(Guid userId, string period, CancellationToken cancellationToken)
     {
-        var incomes =
-            await transactionsRepository.GetAllTransactionsByType(userId, TransactionTypes.Income,
-                cancellationToken); // Получаем доходы
-        var expenses =
-            await transactionsRepository.GetAllTransactionsByType(userId, TransactionTypes.Expense,
-                cancellationToken); // Получаем расходы
+        var periodDates = PeriodHelper.GetPeriodDates(period);
+        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate, 
+                periodDates.EndDate, cancellationToken); // Получаем доходы
 
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Доходы");
@@ -29,8 +26,9 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
         incomeHeadersRange.Style.Font.Bold = true;
         incomeHeadersRange.Style.Fill.BackgroundColor = XLColor.LightGray;
 
+        var incomes = transactions.Where(x => x.Type == TransactionTypes.Income).ToList();
         int incomeRow = 2;
-        if (incomes.Count > 0)
+        if (incomes.Any())
         {
             foreach (var transaction in incomes)
             {
@@ -55,8 +53,9 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
         expenseHeadersRange.Style.Font.Bold = true;
         expenseHeadersRange.Style.Fill.BackgroundColor = XLColor.LightGray;
 
+        var expenses = transactions.Where(x => x.Type == TransactionTypes.Expense).ToList();
         int expenseRow = 2;
-        if (expenses.Count > 0)
+        if (expenses.Any())
         {
             foreach (var transaction in expenses)
             {
@@ -83,18 +82,16 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
 
     public async Task<LineChartDto> GetLineChartData(Guid userId, string period, CancellationToken cancellationToken)
     {
-        (DateTime startDate, DateTime endDate) = GetPeriodDates(period);
-        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId,
-            DateOnly.FromDateTime(startDate), DateOnly.FromDateTime(endDate), cancellationToken);
+        var periodDates = PeriodHelper.GetPeriodDates(period);
+        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate,
+            periodDates.EndDate, cancellationToken);
 
-        int periodLength = (endDate - startDate).Days + 1;
-        decimal[] incomes = new decimal[periodLength];
-        decimal[] expenses = new decimal[periodLength];
-        var date = DateOnly.FromDateTime(startDate);
+        decimal[] incomes = new decimal[periodDates.PeriodLength];
+        decimal[] expenses = new decimal[periodDates.PeriodLength];
 
-        for (int i = 0; i < periodLength; i++)
+        for (int i = 0; i < periodDates.PeriodLength; i++)
         {
-            var currentDate = date.AddDays(i);
+            var currentDate = periodDates.StartDate.AddDays(i);
             incomes[i] = transactions
                 .Where(t => t.Type == TransactionTypes.Income && t.Date == currentDate)
                 .Sum(t => t.Amount);
@@ -110,38 +107,12 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
     public async Task<Dictionary<string, decimal>> GetPieChartData(Guid userId, TransactionTypes type, string period,
         CancellationToken cancellationToken)
     {
-        (DateTime startDate, DateTime endDate) = GetPeriodDates(period);
-        var expenses = await transactionsRepository.GetTransactionsByTypeAndPeriod(userId, type,
-            DateOnly.FromDateTime(startDate), DateOnly.FromDateTime(endDate), cancellationToken);
+        var periodDates = PeriodHelper.GetPeriodDates(period);
+        var expenses = await transactionsRepository.GetTransactionsByTypeAndPeriod(userId, type, periodDates.StartDate,
+            periodDates.EndDate, cancellationToken);
 
         return expenses
             .GroupBy(e => e.Category)
             .ToDictionary(g => g.Key.Name, g => g.Sum(e => e.Amount));
-    }
-
-    private (DateTime, DateTime) GetPeriodDates(string period)
-    {
-        DateTime now = DateTime.Now;
-        DateTime startDate, endDate;
-
-        switch (period.ToLower())
-        {
-            case "week":
-                startDate = now.StartOfWeek(DayOfWeek.Monday);
-                endDate = startDate.AddDays(6);
-                break;
-            case "month":
-                startDate = new DateTime(now.Year, now.Month, 1);
-                endDate = startDate.AddMonths(1).AddDays(-1);
-                break;
-            case "year":
-                startDate = new DateTime(now.Year, 1, 1);
-                endDate = new DateTime(now.Year, 12, 31);
-                break;
-            default:
-                throw new ArgumentException("Неверный период: " + period);
-        }
-
-        return (startDate, endDate);
     }
 }
