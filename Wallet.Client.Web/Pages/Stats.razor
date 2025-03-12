@@ -7,15 +7,14 @@
 @using Wallet.Client.Web.Models
 @inject HttpClient Http
 @inject ILocalStorageService LocalStorageService
+@inject IJSRuntime JSRuntime
 
 <div class="container-fluid overflow-x-auto">
-    <div>
-        <select class="form-select" @onchange="@PeriodChanged">
-            <option value="week">Неделя</option>
+    <div style="display: flex; align-items: center; margin-bottom: 20px; width: 80%;"> <select class="form-select" @onchange="@PeriodChanged" style="margin-right: 10px; width: 89%;"> <option value="week">Неделя</option>
             <option value="month">Месяц</option>
             <option value="year">Год</option>
         </select>
-    </div>
+        <button class="btn btn-primary" @onclick="@DownloadFile" style="width: 20%;">Скачать отчет</button> </div>
     <div style="display: inline-block; width: 80%; margin-bottom: 50px">
         <LineChart @ref="lineChart"/>
     </div>
@@ -72,8 +71,7 @@
     public class PieChartResponse : Dictionary<string, decimal>
     {
     }
-
-
+    
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
@@ -89,8 +87,8 @@
     {
         await LoadLineChartData();
         await LoadPieChartData();
-        await LoadPieChartData2(); // Загрузка данных для второго pie chart
-        await InitializeCharts(); // Инициализация графиков после загрузки данных
+        await LoadPieChartData2();
+        await InitializeCharts();
     }
 
     private async Task LoadLineChartData()
@@ -124,7 +122,7 @@
         var expenseDataset = new LineChartDataset
         {
             Label = "Расходы",
-            Data = lineData.expenses.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal[] to List<double?>
+            Data = lineData.expenses.Select(d => (double?)Convert.ToDouble(d)).ToList(),
             BackgroundColor = colors[0],
             BorderColor = colors[0],
             BorderWidth = 2,
@@ -135,7 +133,7 @@
         var incomeDataset = new LineChartDataset
         {
             Label = "Доходы",
-            Data = lineData.incomes.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal[] to List<double?>
+            Data = lineData.incomes.Select(d => (double?)Convert.ToDouble(d)).ToList(),
             BackgroundColor = colors[1],
             BorderColor = colors[1],
             BorderWidth = 2,
@@ -176,7 +174,7 @@
         var colors = ColorUtility.CategoricalTwelveColors;
         PieChartResponse? pieData = new();
         var user = await LocalStorageService.GetItem<User>("user");
-        var request = new GetPieChartRequest(user.UserId, selectedPeriod, 1); // Используем 1 для первого pie chart
+        var request = new GetPieChartRequest(user.UserId, selectedPeriod, 1);
         Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
         try
         {
@@ -199,7 +197,7 @@
         var dataset3 = new PieChartDataset
         {
             Label = "Расходы по категориям",
-            Data = pieData.Values.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal values to double?
+            Data = pieData.Values.Select(d => (double?)Convert.ToDouble(d)).ToList(),
             BackgroundColor = colors.Take(labels2.Count).ToList(),
             BorderColor = colors.Take(labels2.Count).ToList(),
             BorderWidth = Enumerable.Repeat(2.0, labels2.Count).ToList(),
@@ -232,12 +230,12 @@
         pieChartOptions2.Plugins.Title.Display = true;
     }
 
-    private async Task LoadPieChartData2() 
+    private async Task LoadPieChartData2()
     {
         var colors = ColorUtility.CategoricalTwelveColors;
         PieChartResponse? pieData = new();
         var user = await LocalStorageService.GetItem<User>("user");
-        var request = new GetPieChartRequest(user.UserId, selectedPeriod, 0); 
+        var request = new GetPieChartRequest(user.UserId, selectedPeriod, 0);
         Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
         try
         {
@@ -259,9 +257,9 @@
         var labels3 = pieData.Keys.ToList();
         var dataset4 = new PieChartDataset
         {
-            Label = "Доходы по категориям", // Изменен Label для второго pie chart
-            Data = pieData.Values.Select(d => (double?)Convert.ToDouble(d)).ToList(), // Convert decimal values to double?
-            BackgroundColor = colors.Skip(labels3.Count).Take(labels3.Count).ToList(), // Используем другие цвета, чтобы отличить от первого pie chart
+            Label = "Доходы по категориям",
+            Data = pieData.Values.Select(d => (double?)Convert.ToDouble(d)).ToList(),
+            BackgroundColor = colors.Skip(labels3.Count).Take(labels3.Count).ToList(),
             BorderColor = colors.Skip(labels3.Count).Take(labels3.Count).ToList(),
             BorderWidth = Enumerable.Repeat(2.0, labels3.Count).ToList(),
             HoverBorderWidth = Enumerable.Repeat(4.0, labels3.Count).ToList(),
@@ -289,7 +287,7 @@
                 break;
         }
 
-        pieChartOptions3.Plugins.Title!.Text = $"Доходы по категориям за {periodTitle}"; // Изменен Title для второго pie chart
+        pieChartOptions3.Plugins.Title!.Text = $"Доходы по категориям за {periodTitle}";
         pieChartOptions3.Plugins.Title.Display = true;
     }
 
@@ -303,9 +301,37 @@
         {
             await pieChart2.InitializeAsync(chartData2, pieChartOptions2);
         }
-         if (chartData3.Datasets != null) // Инициализация pieChart3
+        if (chartData3.Datasets != null)
         {
             await pieChart3.InitializeAsync(chartData3, pieChartOptions3);
+        }
+    }
+
+    private async Task DownloadFile()
+    {
+        var user = await LocalStorageService.GetItem<User>("user");
+        Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+
+        try
+        {
+            var response = await Http.GetAsync($"api/v1/stats/Download?period={selectedPeriod}");
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = $"report_{selectedPeriod}.xlsx";
+
+                await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, fileBytes);
+            }
+            else
+            {
+                Console.WriteLine($"Error downloading file: {response.StatusCode}");
+                // Handle error - maybe display a message to the user
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception during file download: {ex.Message}");
+            // Handle exception - maybe display a message to the user
         }
     }
 
@@ -318,9 +344,8 @@
             case "week":
                 for (int i = 0; i < 7; i++)
                 {
-                    labels.Add(DateTime.Now.StartOfWeek(DayOfWeek.Monday).AddDays(i).ToString("ddd", new System.Globalization.CultureInfo("ru-RU"))); // Short day names in Russian
+                    labels.Add(DateTime.Now.StartOfWeek(DayOfWeek.Monday).AddDays(i).ToString("ddd", new System.Globalization.CultureInfo("ru-RU")));
                 }
-
                 break;
             case "month":
                 int daysInMonth = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
@@ -328,7 +353,6 @@
                 {
                     labels.Add(i.ToString());
                 }
-
                 break;
             case "year":
                 var monthNames = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.MonthNames;
@@ -336,10 +360,8 @@
                 {
                     labels.Add(monthNames[i].Substring(0, 3).ToLower());
                 }
-
                 break;
         }
-
         return labels;
     }
 
