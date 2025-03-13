@@ -8,7 +8,7 @@ namespace Wallet.Quartz.Presentation.Controllers;
 [ApiController]
 public class NotificationsController(INotificationsService notificationsService) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("ScheduleNotification")]
     public async Task<IActionResult> ScheduleNotification([FromBody] ScheduleNotificationRequest request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.Name))

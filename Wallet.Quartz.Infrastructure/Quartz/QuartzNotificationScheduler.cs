@@ -20,8 +20,8 @@ public class QuartzNotificationScheduler(
 
         IJobDetail jobDetail = JobBuilder.Create<NotificationJob>()
             .WithIdentity($"notificationJob-{notification.Id}-{delayBefore.TotalMinutes}min")
-            .UsingJobData("reminderId", notification.Id.ToString())
-            .UsingJobData("title", customName)
+            .UsingJobData("notificationId", notification.Id.ToString())
+            .UsingJobData("title", notification.Name)
             .Build();
 
         ITrigger trigger = TriggerBuilder.Create()

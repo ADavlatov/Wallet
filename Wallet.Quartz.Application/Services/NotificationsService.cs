@@ -10,12 +10,11 @@ public class NotificationsService(
 {
     public async Task<Notification> ScheduleNotification(string name, string description, DateTime notificationDateTime)
     {
-        var notificationId = Guid.NewGuid();
         var notification = new Notification(name, description, notificationDateTime);
 
-        await notificationsRepository.AddNotification(notification); //  Сохранение уведомления
+        await notificationsRepository.AddNotification(notification);
 
-        await notificationScheduler.ScheduleNotification(notification); //  Планирование основного уведомления
+        await notificationScheduler.ScheduleNotification(notification);
         if (notificationDateTime > DateTimeOffset.UtcNow.AddDays(1))
         {
             await notificationScheduler.ScheduleNotification(notification, TimeSpan.FromDays(1),
