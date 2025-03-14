@@ -5,6 +5,7 @@ using Wallet.Server.Application.Models.Users;
 using Wallet.Server.Application.Validators;
 using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Services;
+using Task = DocumentFormat.OpenXml.Office2021.DocumentTasks.Task;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
@@ -70,6 +71,21 @@ public class UsersController(IUsersService usersService) : ControllerBase
     public async Task<IActionResult> DeleteUser(Guid userId, CancellationToken cancellationToken)
     {
         await usersService.DeleteUser(userId, cancellationToken);
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpPost("GetApiKey")]
+    public async Task<IActionResult> GetApiKey([FromBody] GetApiKeyRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await usersService.GetApiKey(request.UserId, cancellationToken));
+    }
+
+    [Authorize]
+    [HttpPut("UpdateApiKey")]
+    public async Task<IActionResult> UpdateApiKey([FromBody] UpdateApiKeyRequest request, CancellationToken cancellationToken)
+    {
+        await usersService.UpdateApiKey(request.UserId, cancellationToken);
         return Ok();
     }
 }

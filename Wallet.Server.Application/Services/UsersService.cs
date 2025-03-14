@@ -26,7 +26,8 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
         }
 
         var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
-        var user = await usersRepository.AddUser(new User(username, passwordHash, passwordSalt), cancellationToken);
+        var user = await usersRepository.AddUser(new User(username, passwordHash, passwordSalt, 
+            ApiKeyGenerator.GenerateApiKey()), cancellationToken);
 
         return TokenHelper.CreateTokensPair(options, user.Id.ToString());
     }
@@ -61,12 +62,12 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
                 ValidAudience = options.Value.Audience,
                 IssuerSigningKey = options.Value.GetSymmetricSecurityKey()
             });
-        
+
         if (!token.IsValid)
         {
             throw new AuthenticationException("Invalid refresh token");
         }
-        
+
         var id = token.Claims.First().Value;
         if (!Guid.TryParse(id.ToString(), out var userId))
         {
@@ -91,6 +92,7 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
         var user = await usersRepository.GetUserById(id, cancellationToken);
 
         user.Username = username ?? user.Username;
+        user.Email = user.Email;
         if (password is not null)
         {
             var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
@@ -105,5 +107,18 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
     {
         var user = await usersRepository.GetUserById(id, cancellationToken);
         await usersRepository.DeleteUser(user, cancellationToken);
+    }
+
+    public async Task<string> GetApiKey(Guid userId, CancellationToken cancellationToken)
+    {
+        var user = await usersRepository.GetUserById(userId, cancellationToken);
+        return user.ApiKey;
+    }
+
+    public async Task UpdateApiKey(Guid userId, CancellationToken cancellationToken)
+    {
+        var user = await usersRepository.GetUserById(userId, cancellationToken);
+        user.ApiKey = ApiKeyGenerator.GenerateApiKey();
+        await usersRepository.UpdateUser(user, cancellationToken); 
     }
 }
