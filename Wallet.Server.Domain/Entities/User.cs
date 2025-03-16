@@ -12,4 +12,5 @@ public class User(string username, byte[] passwordHash, byte[] passwordSalt, str
     public List<Transaction> Transactions { get; set; } = new();
     public List<Category> Categories { get; set; } = new();
     public List<Goal> Goals { get; set; } = new();
+    public List<Notification> Notifications { get; set; } = new();
 }
