@@ -27,12 +27,12 @@ public class UsersRepository(WalletContext db) : IUsersRepository
     {
         var users = await db.Users
             .ToListAsync(cancellationToken);
-        
+
         if (!users.Any())
         {
             throw new NotFoundException("Users not found");
         }
-        
+
         return users;
     }
 
@@ -40,12 +40,12 @@ public class UsersRepository(WalletContext db) : IUsersRepository
     {
         var user = await db.Users
             .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
-        
+
         if (user is null)
         {
             throw new NotFoundException("User not found");
         }
-        
+
         return user;
     }
 
@@ -58,7 +58,20 @@ public class UsersRepository(WalletContext db) : IUsersRepository
         {
             throw new NotFoundException("User not found");
         }
+
+        return user;
+    }
+
+    public async Task<User> GetUserByApiKey(string apiKey, CancellationToken cancellationToken)
+    {
+        var user = await db.Users
+            .FirstOrDefaultAsync(x => x.ApiKey == apiKey, cancellationToken: cancellationToken);
         
+        if (user is null)
+        {
+            throw new NotFoundException("User not found");
+        }
+
         return user;
     }
 

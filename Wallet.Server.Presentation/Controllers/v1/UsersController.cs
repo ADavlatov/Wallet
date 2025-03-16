@@ -21,7 +21,7 @@ public class UsersController(IUsersService usersService) : ControllerBase
         {
             return BadRequest(validation.Errors);
         }
-        
+
         return Ok(await usersService.SignUp(request.Username, request.Password, cancellationToken));
     }
 
@@ -33,19 +33,21 @@ public class UsersController(IUsersService usersService) : ControllerBase
         {
             return BadRequest(validation.Errors);
         }
-        
+
         return Ok(await usersService.SignIn(request.Username, request.Password, cancellationToken));
     }
 
     [HttpPost("RefreshTokens")]
-    public async Task<IActionResult> RefreshTokens([FromBody] RefreshTokensRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RefreshTokens([FromBody] RefreshTokensRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await usersService.RefreshTokens(request.RefreshToken, cancellationToken));
     }
 
     [Authorize]
     [HttpPost("GetUserByUsername")]
-    public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await usersService.GetUserByUsername(request.Username, cancellationToken));
     }
@@ -83,9 +85,17 @@ public class UsersController(IUsersService usersService) : ControllerBase
 
     [Authorize]
     [HttpPut("UpdateApiKey")]
-    public async Task<IActionResult> UpdateApiKey([FromBody] UpdateApiKeyRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateApiKey([FromBody] UpdateApiKeyRequest request,
+        CancellationToken cancellationToken)
     {
         await usersService.UpdateApiKey(request.UserId, cancellationToken);
+        return Ok();
+    }
+
+    [HttpPost("ValidateApiKey")]
+    public async Task<IActionResult> ValidateApiKey([FromBody] ValidateApiKeyRequest request, CancellationToken cancellationToken)
+    {
+        await usersService.ValidateApiKey(request.ApiKey, request.telegramUserId, cancellationToken);
         return Ok();
     }
 }

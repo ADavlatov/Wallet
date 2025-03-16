@@ -17,6 +17,11 @@ builder.Services.AddHttpClient("telegram_bot_client").RemoveAllLoggers()
         return new TelegramBotClient(options, httpClient);
     });
 
+builder.Services.AddScoped(x => {
+    var apiUrl = new Uri("http://localhost:5221");
+    var httpClient = new HttpClient { BaseAddress = apiUrl };
+    return httpClient;
+});
 builder.Services.AddScoped<UpdateHandler>();
 builder.Services.AddScoped<ReceiverService>();
 builder.Services.AddHostedService<PollingService>();

@@ -26,7 +26,7 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
         }
 
         var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
-        var user = await usersRepository.AddUser(new User(username, passwordHash, passwordSalt, 
+        var user = await usersRepository.AddUser(new User(username, passwordHash, passwordSalt,
             ApiKeyGenerator.GenerateApiKey()), cancellationToken);
 
         return TokenHelper.CreateTokensPair(options, user.Id.ToString());
@@ -119,6 +119,13 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
     {
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         user.ApiKey = ApiKeyGenerator.GenerateApiKey();
-        await usersRepository.UpdateUser(user, cancellationToken); 
+        await usersRepository.UpdateUser(user, cancellationToken);
+    }
+
+    public async Task ValidateApiKey(string apiKey, long telegramUserId, CancellationToken cancellationToken)
+    {
+        var user = await usersRepository.GetUserByApiKey(apiKey, cancellationToken);
+        user.TelegramUserId = telegramUserId;
+        await usersRepository.UpdateUser(user, cancellationToken);
     }
 }
