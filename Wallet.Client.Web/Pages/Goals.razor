@@ -8,140 +8,70 @@
 
 <PageTitle>Цели</PageTitle>
 
-<h3>Цели</h3>
+<h1 style="margin-bottom: 30px">Цели накопления</h1>
 
-<h1>Цели накопления</h1>
+<div class="card mb-3">
+    <div class="card-body">
+        <h2>Добавить новую цель</h2>
 
-<div class="add-goal-block">
-    <h2>Добавить новую цель</h2>
+        <div class="mb-3">
+            <label for="goalName" class="form-label">Название цели:</label>
+            <InputText id="goalName" class="form-control" @bind-Value="_newGoal.Name"/>
+        </div>
 
-    <div class="goal-name-input">
-        <label for="goalName">Название цели:</label>
-        <InputText id="goalName" @bind-Value="_newGoal.Name"/>
+        <div class="mb-3">
+            <label for="goalSum" class="form-label">Сумма цели:</label>
+            <InputNumber id="goalSum" class="form-control" @bind-Value="_newGoal.TargetSum"/>
+        </div>
+
+        <div class="mb-3">
+            <label for="goalDate" class="form-label">Дата цели:</label>
+            <InputDate id="goalDate" class="form-control" @bind-Value="_newGoal.Deadline"/>
+        </div>
+
+        <button @onclick="AddGoal" class="btn btn-primary">Добавить цель</button>
     </div>
-
-    <div class="goal-sum-input">
-        <label for="goalSum">Сумма цели:</label>
-        <InputNumber id="goalSum" @bind-Value="_newGoal.TargetSum"/>
-    </div>
-
-    <div class="goal-date-input">
-        <label for="goalDate">Дата цели:</label>
-        <InputDate id="goalDate" @bind-Value="_newGoal.Deadline"/>
-    </div>
-
-    <button @onclick="AddGoal">Добавить цель</button>
 </div>
 
-<div class="goals-list">
+<div class="mt-3">
     <h2>Список целей</h2>
     @if (_goals.Any())
     {
+    <div class="list-group">
         @foreach (var goal in _goals)
         {
-            <div class="goal-item">
-                <h3>@goal.Name</h3>
-                <div class="goal-progress">
-                    <label>Прогресс:</label>
-                    <div class="progress-bar">
-                        <div class="progress" style="width: @goal.GetPercentage%;"></div>
+        <div class="list-group-item">
+            <h3>@goal.Name</h3>
+            <div class="d-flex align-items-center mb-2">
+                <label class="me-2">Прогресс:</label>
+                <div class="progress flex-grow-1" style="height: 20px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: @goal.GetPercentage%;" aria-valuenow="@goal.GetPercentage" aria-valuemin="0" aria-valuemax="100">
+                        @goal.GetPercentage%
                     </div>
-                    <span>@goal.GetPercentage%</span>
                 </div>
-                <p>Цель: @goal.TargetSum.ToString("C")</p>
-                <p>Накоплено: @goal.CurrentSum.ToString("C")</p>
-                <p>Дата цели: @goal.Deadline</p>
-
-                <div class="add-funds-form">
-                    <h4>Добавить средства</h4>
-                    <div class="add-funds-input">
-                        <label for="@goal.Id">Сумма:</label>
-                        <InputNumber id="@goal.Id" @bind-Value="goal.AmountToAdd"/>
-                    </div>
-                    <button @onclick="@(() => AddSumToGoal(goal))">Добавить</button>
-                </div>
+                <span class="ms-2">@goal.GetPercentage%</span>
             </div>
+            <p>Цель: @goal.TargetSum.ToString("C")</p>
+            <p>Накоплено: @goal.CurrentSum.ToString("C")</p>
+            <p>Дата цели: @goal.Deadline</p>
+
+            <div class="mt-3 border-top pt-3">
+                <h4>Добавить средства</h4>
+                <div class="mb-3">
+                    <label for="@goal.Id" class="form-label">Сумма:</label>
+                    <InputNumber id="@goal.Id" class="form-control" @bind-Value="goal.AmountToAdd"/>
+                </div>
+                <button @onclick="@(() => AddSumToGoal(goal))" class="btn btn-success">Добавить</button>
+            </div>
+        </div>
         }
+    </div>
     }
     else
     {
-        <p>Список целей пуст.</p>
+    <p>Список целей пуст.</p>
     }
 </div>
-
-<style>
-
-    .add-goal-block {
-        border: 1px solid #ccc;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .add-goal-block h2 {
-        margin-top: 0;
-    }
-
-    .goal-name-input, .goal-sum-input, .goal-date-input {
-        margin-bottom: 10px;
-    }
-
-    .goals-list h2 {
-        margin-top: 0;
-        margin-bottom: 15px;
-    }
-
-    .goal-item {
-        border: 1px solid #ddd;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-
-    .goal-item h3 {
-        margin-top: 0;
-        margin-bottom: 10px;
-    }
-
-    .goal-progress {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .goal-progress label {
-        margin-right: 10px;
-    }
-
-    .progress-bar {
-        background-color: #eee;
-        border-radius: 5px;
-        height: 20px;
-        width: 200px;
-        margin-right: 10px;
-        overflow: hidden; /* Чтобы progress не выходил за рамки */
-    }
-
-    .progress {
-        background-color: #4CAF50; /* Зеленый цвет прогресса */
-        height: 100%;
-        border-radius: 5px;
-        transition: width 0.3s ease; /* Анимация для плавного заполнения */
-    }
-
-    .add-funds-form {
-        margin-top: 15px;
-        padding-top: 10px;
-        border-top: 1px solid #eee;
-    }
-
-    .add-funds-form h4 {
-        margin-top: 0;
-        margin-bottom: 10px;
-    }
-
-    .add-funds-input {
-        margin-bottom: 10px;
-    }
-</style>
 
 @code {
 

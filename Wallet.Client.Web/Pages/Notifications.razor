@@ -2,8 +2,75 @@
 
 <PageTitle>Напоминания</PageTitle>
 
-<h3>Напоминания</h3>
+
+<h1 style="margin-bottom: 30px">Напоминания</h1>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Добавить напоминание</h5>
+        <div class="mb-3">
+            <label for="title" class="form-label">Название</label>
+            <input type="text" class="form-control" id="title" @bind="newReminder.Title">
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label">Описание</label>
+            <textarea class="form-control" id="description" rows="3" @bind="newReminder.Description"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="date" class="form-label">Дата</label>
+            <input type="date" class="form-control" id="date" @bind="newReminder.DateOnly" />
+        </div>
+        <div class="mb-3">
+            <label for="time" class="form-label">Время</label>
+            <input type="time" class="form-control" id="time" @bind="newReminder.TimeOnly" />
+        </div>
+        <button class="btn btn-primary" @onclick="AddReminder">Добавить</button>
+    </div>
+</div>
+
+@if (reminders.Any())
+{
+    <h2>Список напоминаний</h2>
+    <ul class="list-group">
+        @foreach (var reminder in reminders)
+        {
+            <li class="list-group-item">
+                <h5>@reminder.Title</h5>
+                <p>@reminder.Description</p>
+                <small>Дата и время: @reminder.DateTime.ToString("dd.MM.yyyy HH:mm")</small>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Нет добавленных напоминаний.</p>
+}
 
 @code {
-    
+    private List<Reminder> reminders = new List<Reminder>();
+    private Reminder newReminder = new Reminder();
+
+    private void AddReminder()
+    {
+        if (!string.IsNullOrWhiteSpace(newReminder.Title) && newReminder.DateOnly != default(DateOnly))
+        {
+           
+                newReminder.DateTime = newReminder.DateOnly.ToDateTime(newReminder.TimeOnly);
+                reminders.Add(new Reminder { Title = newReminder.Title, Description = newReminder.Description, DateTime = newReminder.DateTime });
+                newReminder = new Reminder(); // Очистка формы после добавления
+           
+        }
+    }
+
+    public class Reminder
+    {
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public DateTime DateTime { get; set; }
+
+        // Вспомогательные свойства для раздельного хранения даты и времени во время ввода
+        public DateOnly DateOnly { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public TimeOnly TimeOnly { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
+    }
 }
