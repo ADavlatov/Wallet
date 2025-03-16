@@ -21,7 +21,9 @@ public class QuartzNotificationScheduler(
         IJobDetail jobDetail = JobBuilder.Create<NotificationJob>()
             .WithIdentity($"notificationJob-{notification.Id}-{delayBefore.TotalMinutes}min")
             .UsingJobData("notificationId", notification.Id.ToString())
-            .UsingJobData("title", notification.Name)
+            .UsingJobData("name", notification.Name)
+            .UsingJobData("description", notification.Description)
+            .UsingJobData("userId", notification.TelegramUserId.ToString())
             .Build();
 
         ITrigger trigger = TriggerBuilder.Create()

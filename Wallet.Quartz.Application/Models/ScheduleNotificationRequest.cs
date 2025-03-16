@@ -1,3 +1,3 @@
 ﻿namespace Wallet.Quartz.Application.Models;
 
-public record ScheduleNotificationRequest(string Name, string Description, DateTime NotificationDateTime);
+public record ScheduleNotificationRequest(long TelegramUserId, string Name, string Description, DateTime NotificationDateTime);

@@ -8,9 +8,9 @@ public class NotificationsService(
     INotificationsRepository notificationsRepository,
     QuartzNotificationScheduler notificationScheduler) : INotificationsService
 {
-    public async Task<Notification> ScheduleNotification(string name, string description, DateTime notificationDateTime)
+    public async Task<Notification> ScheduleNotification(long telegramUserId, string name, string description, DateTime notificationDateTime)
     {
-        var notification = new Notification(name, description, notificationDateTime);
+        var notification = new Notification(telegramUserId, name, description, notificationDateTime);
 
         await notificationsRepository.AddNotification(notification);
 

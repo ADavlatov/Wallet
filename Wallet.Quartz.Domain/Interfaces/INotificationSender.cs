@@ -2,5 +2,5 @@
 
 public interface INotificationSender
 {
-    Task SendNotification(string message);
+    Task SendNotification(long telegramUserId, string name, string description);
 }
