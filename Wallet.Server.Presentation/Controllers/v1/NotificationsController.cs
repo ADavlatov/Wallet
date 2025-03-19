@@ -5,7 +5,7 @@ using Wallet.Server.Domain.Interfaces.Services;
 namespace Wallet.Server.Presentation.Controllers.v1;
 
 [ApiController]
-[Route("/api/v1/goals")]
+[Route("/api/v1/notifications")]
 public class NotificationsController(INotificationsService notificationsService) : ControllerBase
 {
     [HttpPost("AddNotification")]

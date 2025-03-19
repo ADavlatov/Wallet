@@ -4,8 +4,8 @@ using Wallet.Quartz.Domain.Interfaces;
 
 namespace Wallet.Quartz.Presentation.Controllers;
 
-[Route("api/v1/notifications")]
 [ApiController]
+[Route("api/v1/notifications")]
 public class NotificationsController(INotificationsService notificationsService) : ControllerBase
 {
     [HttpPost("ScheduleNotification")]

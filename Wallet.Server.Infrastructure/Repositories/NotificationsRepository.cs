@@ -8,10 +8,11 @@ namespace Wallet.Server.Infrastructure.Repositories;
 
 public class NotificationsRepository(WalletContext db) : INotificationsRepository
 {
-    public async Task AddNotification(Notification notification, CancellationToken cancellationToken)
+    public async Task<Notification> AddNotification(Notification notification, CancellationToken cancellationToken)
     {
         db.Notifications.Add(notification);
         await db.SaveChangesAsync(cancellationToken);
+        return notification;
     }
 
     public async Task<Notification> GetNotificationById(Guid notificationId, CancellationToken cancellationToken)

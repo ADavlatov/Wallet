@@ -65,7 +65,7 @@ public class UsersRepository(WalletContext db) : IUsersRepository
     public async Task<User> GetUserByApiKey(string apiKey, CancellationToken cancellationToken)
     {
         var user = await db.Users
-            .FirstOrDefaultAsync(x => x.ApiKey == apiKey, cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(x => x.ApiKey == apiKey, cancellationToken);
         
         if (user is null)
         {

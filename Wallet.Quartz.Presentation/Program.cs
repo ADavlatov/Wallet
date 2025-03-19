@@ -1,4 +1,3 @@
-using Microsoft.OpenApi.Models;
 using Quartz;
 using Quartz.AspNetCore;
 using Wallet.Quartz.Infrastructure.Contexts;
@@ -15,7 +14,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://localhost:7129")
+        policy.WithOrigins("http://localhost:5221")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

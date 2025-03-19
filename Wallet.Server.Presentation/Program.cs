@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<WalletContext>();
 builder.Services.AddControllers(x => x.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddHttpClient();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.Section));
 
 builder.Services.AddSwaggerGen(x =>
