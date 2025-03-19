@@ -10,6 +10,7 @@ public sealed class WalletContext : DbContext
     public DbSet<Transaction> Transactions { get; init; }
     public DbSet<Category> Categories { get; init; }
     public DbSet<Goal> Goals { get; init; }
+    public DbSet<Notification> Notifications { get; init; }
 
     public WalletContext()
     {
@@ -40,7 +41,6 @@ public sealed class WalletContext : DbContext
         public void Configure(EntityTypeBuilder<Transaction> builder)
         {
             builder.HasKey(x => x.Id);
-            //builder.HasOne(x => x.Category).WithMany(x => x.Transactions).HasForeignKey(x => x.CategoryId);
         }
     }
 
@@ -59,6 +59,15 @@ public sealed class WalletContext : DbContext
         {
             builder.HasKey(x => x.Id);
             builder.HasOne(x => x.User).WithMany(x => x.Goals).HasForeignKey(x => x.UserId);
+        }
+    }
+    
+    private class NotificationConfiguration : IEntityTypeConfiguration<Notification>
+    {
+        public void Configure(EntityTypeBuilder<Notification> builder)
+        {
+            builder.HasKey(x => x.Id);
+            builder.HasOne(x => x.User).WithMany(x => x.Notifications).HasForeignKey(x => x.UserId);
         }
     }
 }

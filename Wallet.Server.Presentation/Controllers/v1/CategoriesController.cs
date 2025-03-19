@@ -47,7 +47,6 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
     {
         await categoriesService.UpdateCategory(request.CategoryId, request.Name, request.Type, cancellationToken);
-
         return Ok();
     }
 

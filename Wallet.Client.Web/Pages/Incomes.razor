@@ -8,49 +8,51 @@
 
 <PageTitle>Доходы</PageTitle>
 
-<h3>Доходы</h3>
+<h1 style="margin-bottom: 30px">Доходы</h1>
 
-<div class="add-block card-body">
-    <h2>Добавить новый элемент</h2>
+<div class="card mb-3">
+    <div class="add-block card-body">
+        <h2>Добавить новый элемент</h2>
 
-    <div class="category-input mb-3">
-        <label for="category" class="form-label">Категория:</label>
-        <InputSelect id="category" @bind-Value="_transaction.CategoryId">
-            <option value="">-- Выберите категорию --</option>
-            @foreach (var category in _categories)
-            {
-                <option value="@category.Id">@category.Name</option>
-            }
-        </InputSelect>
-    </div>
+        <div class="category-input mb-3">
+            <label for="category" class="form-label">Категория:</label>
+            <InputSelect id="category" class="form-select" @bind-Value="_transaction.CategoryId">
+                <option value="">-- Выберите категорию --</option>
+                @foreach (var category in _categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </InputSelect>
+        </div>
 
-    <div class="amount-input mb-3">
-        <label for="amount" class="form-label">Сумма:</label>
-        <InputNumber id="amount" @bind-Value="_transaction.Amount"/>
-    </div>
+        <div class="amount-input mb-3">
+            <label for="amount" class="form-label">Сумма:</label>
+            <InputNumber id="amount" class="form-control" @bind-Value="_transaction.Amount"/>
+        </div>
 
-    <div class="date-input mb-3">
-        <label for="date" class="form-label">Дата:</label>
-        <InputDate id="date" @bind-Value="_transaction.Date"/>
-    </div>
+        <div class="date-input mb-3">
+            <label for="date" class="form-label">Дата:</label>
+            <InputDate id="date" class="form-control" @bind-Value="_transaction.Date"/>
+        </div>
 
-    <div class="name-input mb-3">
-        <label for="name" class="form-label">Имя (необязательно):</label>
-        <InputText id="name" @bind-Value="_transaction.Name"/>
-    </div>
+        <div class="name-input mb-3">
+            <label for="name" class="form-label">Имя (необязательно):</label>
+            <InputText id="name" class="form-control" @bind-Value="_transaction.Name"/>
+        </div>
 
-    <button @onclick="AddTransaction" class="btn btn-primary">Добавить элемент</button>
+        <button @onclick="AddTransaction" class="btn btn-primary">Добавить элемент</button>
 
-    <div class="add-category-button">
-        <button @onclick="OpenCategoryModal">Добавить категорию</button>
+        <div class="add-category-button mt-3">
+            <button @onclick="OpenCategoryModal" class="btn btn-secondary">Добавить категорию</button>
+        </div>
     </div>
 </div>
 
-<div class="items-list">
+<div class="items-list mt-3">
     <h2>Список элементов</h2>
     @if (_transactions.Any())
     {
-        <table>
+        <table class="table table-striped">
             <thead>
             <tr>
                 <th>Категория</th>
@@ -80,17 +82,26 @@
 
 @if (_showCategoryModal)
 {
-    <div class="category-modal">
-        <div class="modal-content">
-            <span class="close-button" @onclick="CloseCategoryModal">&times;</span>
-            <h3>Добавить категорию</h3>
-            <div class="category-name-input">
-                <label for="categoryName">Имя категории:</label>
-                <InputText id="categoryName" @bind-Value="_newCategoryName"/>
+    <div class="modal fade show" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-modal="true" style="display: block;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoryModalLabel">Добавить категорию</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseCategoryModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Имя категории:</label>
+                        <InputText id="categoryName" class="form-control" @bind-Value="_newCategoryName"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="AddCategory">Создать категорию</button>
+                </div>
             </div>
-            <button @onclick="AddCategory">Создать категорию</button>
         </div>
     </div>
+    <div class="modal-backdrop fade show"></div>
 }
 
 @code {

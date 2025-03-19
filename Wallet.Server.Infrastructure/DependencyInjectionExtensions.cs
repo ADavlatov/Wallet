@@ -13,5 +13,6 @@ public static class DependencyInjectionExtensions
         services.AddTransient<IGoalsRepository, GoalsRepository>();
         services.AddTransient<ITransactionsRepository, TransactionsRepository>();
         services.AddTransient<IUsersRepository, UsersRepository>();
+        services.AddTransient<INotificationsRepository, NotificationsRepository>();
     }
 }

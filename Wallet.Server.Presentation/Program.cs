@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<WalletContext>();
 builder.Services.AddControllers(x => x.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddHttpClient();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.Section));
 
 builder.Services.AddSwaggerGen(x =>
@@ -87,6 +87,7 @@ app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 app.Run();
 
+//:TODO выпилить хардкод
 //:TODO переделать репозитории
 //:TODO добавить изменение и удаление категорий и транзакций на клиенте
 //:TODO добавить лк на клиенте

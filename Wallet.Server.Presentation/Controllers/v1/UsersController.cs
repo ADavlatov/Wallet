@@ -5,6 +5,7 @@ using Wallet.Server.Application.Models.Users;
 using Wallet.Server.Application.Validators;
 using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Services;
+using Task = DocumentFormat.OpenXml.Office2021.DocumentTasks.Task;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
@@ -20,7 +21,7 @@ public class UsersController(IUsersService usersService) : ControllerBase
         {
             return BadRequest(validation.Errors);
         }
-        
+
         return Ok(await usersService.SignUp(request.Username, request.Password, cancellationToken));
     }
 
@@ -32,19 +33,21 @@ public class UsersController(IUsersService usersService) : ControllerBase
         {
             return BadRequest(validation.Errors);
         }
-        
+
         return Ok(await usersService.SignIn(request.Username, request.Password, cancellationToken));
     }
 
     [HttpPost("RefreshTokens")]
-    public async Task<IActionResult> RefreshTokens([FromBody] RefreshTokensRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> RefreshTokens([FromBody] RefreshTokensRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await usersService.RefreshTokens(request.RefreshToken, cancellationToken));
     }
 
     [Authorize]
     [HttpPost("GetUserByUsername")]
-    public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUserByUsername([FromBody] GetUserByUsernameRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await usersService.GetUserByUsername(request.Username, cancellationToken));
     }
@@ -70,6 +73,29 @@ public class UsersController(IUsersService usersService) : ControllerBase
     public async Task<IActionResult> DeleteUser(Guid userId, CancellationToken cancellationToken)
     {
         await usersService.DeleteUser(userId, cancellationToken);
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpPost("GetApiKey")]
+    public async Task<IActionResult> GetApiKey([FromBody] GetApiKeyRequest request, CancellationToken cancellationToken)
+    {
+        return Ok(await usersService.GetApiKey(request.UserId, cancellationToken));
+    }
+
+    [Authorize]
+    [HttpPut("UpdateApiKey")]
+    public async Task<IActionResult> UpdateApiKey([FromBody] UpdateApiKeyRequest request,
+        CancellationToken cancellationToken)
+    {
+        await usersService.UpdateApiKey(request.UserId, cancellationToken);
+        return Ok();
+    }
+
+    [HttpPost("ValidateApiKey")]
+    public async Task<IActionResult> ValidateApiKey([FromBody] ValidateApiKeyRequest request, CancellationToken cancellationToken)
+    {
+        await usersService.ValidateApiKey(request.ApiKey, request.telegramUserId, cancellationToken);
         return Ok();
     }
 }

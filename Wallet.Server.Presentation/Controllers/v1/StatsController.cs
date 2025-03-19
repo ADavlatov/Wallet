@@ -11,10 +11,10 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("api/v1/stats")]
 public class StatsController(IStatsService statsService) : ControllerBase
 {
-    [HttpGet("{userId}")]
-    public async Task<IActionResult> GetExcelFile(Guid userId, CancellationToken cancellationToken)
+    [HttpPost("GetExcelFile")]
+    public async Task<IActionResult> GetExcelFile([FromBody] GetExcelRequest request, CancellationToken cancellationToken)
     {
-        var excelFileBytes = await statsService.GenerateExcelFile(userId, cancellationToken);
+        var excelFileBytes = await statsService.GenerateExcelFile(request.UserId, request.period, cancellationToken);
         string fileName = $"Transactions_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
         return File(excelFileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);

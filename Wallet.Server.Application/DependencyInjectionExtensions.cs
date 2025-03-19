@@ -13,5 +13,6 @@ public static class DependencyInjectionExtensions
         services.AddTransient<ITransactionsService, TransactionsService>();
         services.AddTransient<IUsersService, UsersService>();
         services.AddTransient<IStatsService, StatsService>();
+        services.AddTransient<INotificationsService, NotificationsService>();
     }
 }
