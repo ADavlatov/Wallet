@@ -25,6 +25,24 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        function setNotificationsListHeight(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const headerHeight = document.querySelector('h1').offsetHeight;
+                const formHeight = document.querySelector('.card').offsetHeight;
+                const listTitleHeight = document.querySelector('h2').offsetHeight;
+                const marginBottom = 30;
+
+                const availableHeight = window.innerHeight - headerHeight - formHeight - listTitleHeight - marginBottom - 20; // Вычитаем немного на запас
+
+                element.style.maxHeight = `${availableHeight}px`;
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            setNotificationsListHeight('notificationsListContainer');
+        });
     </script>
 </head>
 

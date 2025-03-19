@@ -33,7 +33,7 @@ public class NotificationsRepository(WalletContext db) : INotificationsRepositor
         var notifications = await db.Notifications
             .Where(x => x.UserId == userId)
             .ToListAsync(cancellationToken);
-        
+
         return notifications;
     }
 

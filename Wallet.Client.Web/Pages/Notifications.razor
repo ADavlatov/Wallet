@@ -1,4 +1,10 @@
 ﻿@page "/Notifications"
+@using System.Net.Http.Headers
+@using Wallet.Client.Web.Entities
+@using Wallet.Client.Web.Interfaces
+@using Wallet.Client.Web.Models
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
 
 <PageTitle>Напоминания</PageTitle>
 
@@ -10,67 +16,86 @@
         <h5 class="card-title">Добавить напоминание</h5>
         <div class="mb-3">
             <label for="title" class="form-label">Название</label>
-            <input type="text" class="form-control" id="title" @bind="newReminder.Title">
+            <input type="text" class="form-control" id="title" @bind="newNotification.Name">
         </div>
         <div class="mb-3">
             <label for="description" class="form-label">Описание</label>
-            <textarea class="form-control" id="description" rows="3" @bind="newReminder.Description"></textarea>
+            <textarea class="form-control" id="description" rows="3" @bind="newNotification.Description"></textarea>
         </div>
         <div class="mb-3">
             <label for="date" class="form-label">Дата</label>
-            <input type="date" class="form-control" id="date" @bind="newReminder.DateOnly" />
+            <input type="date" class="form-control" id="date" @bind="newNotification.DateOnly"/>
         </div>
         <div class="mb-3">
             <label for="time" class="form-label">Время</label>
-            <input type="time" class="form-control" id="time" @bind="newReminder.TimeOnly" />
+            <input type="time" class="form-control" id="time" @bind="newNotification.TimeOnly"/>
         </div>
-        <button class="btn btn-primary" @onclick="AddReminder">Добавить</button>
+        <button class="btn btn-primary" @onclick="AddNotification">Добавить</button>
     </div>
 </div>
 
-@if (reminders.Any())
+@if (notifications.Any())
 {
     <h2>Список напоминаний</h2>
-    <ul class="list-group">
-        @foreach (var reminder in reminders)
-        {
-            <li class="list-group-item">
-                <h5>@reminder.Title</h5>
-                <p>@reminder.Description</p>
-                <small>Дата и время: @reminder.DateTime.ToString("dd.MM.yyyy HH:mm")</small>
-            </li>
-        }
-    </ul>
+    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; border-radius: 5px;">
+        <ul class="list-group">
+            @foreach (var reminder in notifications)
+            {
+                <li class="list-group-item">
+                    <h5>@reminder.Name</h5>
+                    <p>@reminder.Description</p>
+                    <small>Дата и время: @reminder.DateTime.ToString("dd.MM.yyyy HH:mm")</small>
+                </li>
+            }
+        </ul>
+    </div>
 }
 else
 {
     <p>Нет добавленных напоминаний.</p>
 }
 
-@code {
-    private List<Reminder> reminders = new List<Reminder>();
-    private Reminder newReminder = new Reminder();
 
-    private void AddReminder()
+@code {
+    private List<Notification>? notifications = new();
+    private Notification newNotification = new();
+
+    protected override async void OnInitialized()
     {
-        if (!string.IsNullOrWhiteSpace(newReminder.Title) && newReminder.DateOnly != default(DateOnly))
+        await GetNotifications();
+    }
+
+    private async Task AddNotification()
+    {
+        newNotification.DateTime = newNotification.DateOnly.ToDateTime(newNotification.TimeOnly);
+        if (!string.IsNullOrWhiteSpace(newNotification.Name) && newNotification.DateTime > DateTime.Now)
         {
-           
-                newReminder.DateTime = newReminder.DateOnly.ToDateTime(newReminder.TimeOnly);
-                reminders.Add(new Reminder { Title = newReminder.Title, Description = newReminder.Description, DateTime = newReminder.DateTime });
-                newReminder = new Reminder(); // Очистка формы после добавления
-           
+            var user = await LocalStorageService.GetItem<User>("user");
+            var addNotificationRequest = new AddNotificationRequest(user.UserId, newNotification.Name, newNotification.Description, newNotification.DateTime);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+
+            Console.WriteLine("asdasd");
+            var response = await HttpClient.PostAsJsonAsync("/api/v1/notifications/AddNotification", addNotificationRequest);
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("qweqwe");
+                newNotification = new Notification();
+                await GetNotifications();
+                StateHasChanged();
+            }
+            else
+            {
+                Console.WriteLine(await response.Content.ReadAsStringAsync());
+            }
         }
     }
 
-    public class Reminder
+    private async Task GetNotifications()
     {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public DateTime DateTime { get; set; }
-
-        // Вспомогательные свойства для раздельного хранения даты и времени во время ввода
-        public DateOnly DateOnly { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-        public TimeOnly TimeOnly { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
+        var user = await LocalStorageService.GetItem<User>("user");
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        notifications = await HttpClient.GetFromJsonAsync<List<Notification>>($"/api/v1/notifications/{user.UserId}");
+        StateHasChanged();
     }
+
 }

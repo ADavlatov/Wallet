@@ -9,7 +9,7 @@ Wallet.Quartz.Infrastructure.DependencyInjectionExtensions.ConfigureDependencies
 Wallet.Quartz.Application.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
 
 builder.Services.AddDbContext<QuartzContext>();
-
+builder.Services.AddHttpClient();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

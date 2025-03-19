@@ -1,5 +1,5 @@
-﻿using System.Net.Http.Headers;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
+using System.Text.Json;
 using Wallet.Server.Application.Models.Notifications;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Interfaces.Repositories;
@@ -7,7 +7,7 @@ using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Application.Services;
 
-public class NotificationsService(INotificationsRepository notificationsRepository, IUsersRepository usersRepository)
+public class NotificationsService(INotificationsRepository notificationsRepository, IUsersRepository usersRepository, HttpClient httpClient)
     : INotificationsService
 {
     public async Task AddNotification(Guid userId, string name, string description, DateTime dateTime,
@@ -27,17 +27,12 @@ public class NotificationsService(INotificationsRepository notificationsReposito
             },
             cancellationToken);
         
-       ;
-       using var httpClient = new HttpClient();
-        var request =
-            new AddNotificationToQuartzRequest(notification.Id, (long)user.TelegramUserId, name, description, dateTime);
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, "http://localhost:5230/api/v1/notifications/ScheduleNotification");
-        httpRequest.Content = JsonContent.Create(request);
-
-        httpRequest.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        var response = await httpClient.SendAsync(httpRequest, cancellationToken);
+       
+        var request = new AddNotificationToQuartzRequest(notification.Id, (long)user.TelegramUserId, 
+            name, description, dateTime);
+        var response = await httpClient.PostAsJsonAsync("http://localhost:5230/api/v1/notifications/ScheduleNotification", 
+            request, cancellationToken);
+        
         if (!response.IsSuccessStatusCode)
         {
             throw new ArgumentException();

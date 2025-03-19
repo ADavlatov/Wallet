@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
-using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Infrastructure.Contexts;
 

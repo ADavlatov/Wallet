@@ -87,6 +87,7 @@ app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 app.Run();
 
+//:TODO выпилить хардкод
 //:TODO переделать репозитории
 //:TODO добавить изменение и удаление категорий и транзакций на клиенте
 //:TODO добавить лк на клиенте

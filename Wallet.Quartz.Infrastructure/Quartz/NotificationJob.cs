@@ -7,7 +7,8 @@ namespace Wallet.Quartz.Infrastructure.Quartz;
 
 public class NotificationJob(
     ILogger<NotificationJob> logger,
-    INotificationSender notificationSender) : IJob
+    INotificationSender notificationSender,
+    HttpClient httpClient) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
@@ -26,6 +27,16 @@ public class NotificationJob(
             $"Name: {name}, Description: {description} " +
             $"в: {DateTime.Now:F}");
 
+        await DeleteNotificationFromDb(notificationIdString);
         await notificationSender.SendNotification(long.Parse(userId), name, description);
+    }
+
+    private async Task DeleteNotificationFromDb(string notificationIdString)
+    {
+        var response = await httpClient.DeleteAsync($"http://localhost:5221/api/v1/notifications/{notificationIdString}");
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("");
+        }
     }
 }

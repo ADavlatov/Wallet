@@ -7,7 +7,8 @@ namespace Wallet.Quartz.Infrastructure.Quartz;
 
 public class QuartzNotificationScheduler(
     ISchedulerFactory schedulerFactory,
-    ILogger<QuartzNotificationScheduler> logger) : INotificationsScheduler
+    ILogger<QuartzNotificationScheduler> logger,
+    HttpClient httpClient) : INotificationsScheduler
 {
     public async Task ScheduleNotification(Notification notification)
     {
@@ -30,7 +31,7 @@ public class QuartzNotificationScheduler(
             .WithIdentity($"reminderTrigger-{notification.Id}-{delayBefore.TotalMinutes}min")
             .StartAt(notification.NotificationDateTime.Subtract(delayBefore))
             .Build();
-
+        
         await scheduler.ScheduleJob(jobDetail, trigger);
         logger.LogInformation($"Job {jobDetail.Key} scheduled for {trigger.StartTimeUtc} with title '{customName}'");
     }
