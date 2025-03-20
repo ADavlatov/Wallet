@@ -13,6 +13,7 @@
         <PackageReference Include="coverlet.collector" Version="6.0.0"/>
         <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.2" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.2" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.2">
           <PrivateAssets>all</PrivateAssets>
@@ -29,6 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Wallet.Server.Application\Wallet.Server.Application.csproj" />
       <ProjectReference Include="..\Wallet.Server.Infrastructure\Wallet.Server.Infrastructure.csproj" />
     </ItemGroup>
 
