@@ -1,9 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Wallet.Client.Web.Models;
+namespace Wallet.Client.Web.Models.Stats;
 
-public class GetTransactionsByTypeRequest(string userId, int type)
+public class GetPieChartRequest(string userId, string period, int type)
 {
     [JsonPropertyName("userId")] public string UserId { get; set; } = userId;
+    [JsonPropertyName("period")] public string Period { get; set; } = period;
     [JsonPropertyName("type")] public int Type { get; set; } = type;
 }

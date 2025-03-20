@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Wallet.Client.Web.Models;
+namespace Wallet.Client.Web.Models.Notifications;
 
 public class AddNotificationRequest(string userId, string name, string description, DateTime dateTime)
 {

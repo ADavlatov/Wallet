@@ -40,7 +40,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     [HttpPut]
     public async Task<IActionResult> UpdateTransaction([FromBody] UpdateTransactionRequest request, CancellationToken cancellationToken)
     {
-        await transactionsService.UpdateTransaction(request.TransactionId, request.Name, request.Amount, request.Date, request.Type, cancellationToken);
+        await transactionsService.UpdateTransaction(request.TransactionId, request.CategoryId, request.Name, request.Amount, request.Date, cancellationToken);
 
         return Ok();
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Notifications;
 using Wallet.Server.Domain.Interfaces.Services;
 
@@ -8,6 +9,7 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("/api/v1/notifications")]
 public class NotificationsController(INotificationsService notificationsService) : ControllerBase
 {
+    [Authorize]
     [HttpPost("AddNotification")]
     public async Task<IActionResult> AddNotification([FromBody] AddNotificationRequest request,
         CancellationToken cancellationToken)
@@ -17,12 +19,14 @@ public class NotificationsController(INotificationsService notificationsService)
         return Ok();
     }
 
+    [Authorize]
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetNotifications(Guid userId, CancellationToken cancellationToken)
     {
         return Ok(await notificationsService.GetNotifications(userId, cancellationToken));
     }
 
+    [Authorize]
     [HttpPut]
     public async Task<IActionResult> UpdateNotification([FromBody] UpdateNotificationRequest request,
         CancellationToken cancellationToken)

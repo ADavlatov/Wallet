@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Wallet.Client.Web.Models;
+namespace Wallet.Client.Web.Models.Transactions;
 
 public class AddTransactionRequest(string userId, string categoryId, string? name, decimal amount, DateOnly date, int type)
 {

@@ -9,25 +9,13 @@ using Wallet.Client.Web.Interfaces;
 
 namespace Wallet.Client.Web.Services;
 
-public class HttpService : IHttpService
+public class HttpService(
+    HttpClient httpClient,
+    NavigationManager navigationManager,
+    ILocalStorageService localStorageService,
+    IConfiguration configuration) : IHttpService
 {
-    private HttpClient _httpClient;
-    private NavigationManager _navigationManager;
-    private ILocalStorageService _localStorageService;
-    private IConfiguration _configuration;
-
-    public HttpService(
-        HttpClient httpClient,
-        NavigationManager navigationManager,
-        ILocalStorageService localStorageService,
-        IConfiguration configuration
-    )
-    {
-        _httpClient = httpClient;
-        _navigationManager = navigationManager;
-        _localStorageService = localStorageService;
-        _configuration = configuration;
-    }
+    private IConfiguration _configuration = configuration;
 
     public async Task<T> Get<T>(string uri)
     {
@@ -46,12 +34,12 @@ public class HttpService : IHttpService
 
     private async Task<T> SendRequest<T>(HttpRequestMessage request)
     {
-        var user = await _localStorageService.GetItem<User>("user");
+        var user = await localStorageService.GetItem<User>("user");
         var isApiUrl = !request.RequestUri.IsAbsoluteUri;
         if (user != null && isApiUrl)
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer ", user.AccessToken);
 
-        using var response = await _httpClient.SendAsync(request);
+        using var response = await httpClient.SendAsync(request);
 
         Console.WriteLine(response.StatusCode);
         if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -70,16 +58,16 @@ public class HttpService : IHttpService
     
     private async Task RefreshToken(User user)
     {
-        var response = await _httpClient.PostAsJsonAsync("/api/v1/users/RefreshToken", user.RefreshToken);
+        var response = await httpClient.PostAsJsonAsync("/api/v1/users/RefreshToken", user.RefreshToken);
 
         if (response.IsSuccessStatusCode)
         {
             user = await response.Content.ReadFromJsonAsync<User>();
-            await _localStorageService.SetItem("user", user);
+            await localStorageService.SetItem("user", user);
         }
         else
         {
-            _navigationManager.NavigateTo("signout");
+            navigationManager.NavigateTo("signout");
         }
     }
 }

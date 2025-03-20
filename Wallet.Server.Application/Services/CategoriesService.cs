@@ -46,13 +46,12 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
         return await categoriesRepository.GetCategoryById(id, cancellationToken);
     }
 
-    public async Task UpdateCategory(Guid categoryId, string? name, TransactionTypes? type, CancellationToken cancellationToken)
+    public async Task UpdateCategory(Guid categoryId, string? name, CancellationToken cancellationToken)
     {
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
 
         //TODO учитывать пустые строки
         category.Name = name ?? category.Name;
-        category.Type = type ?? category.Type;
 
         await categoriesRepository.UpdateCategory(category, cancellationToken);
     }

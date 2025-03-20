@@ -3,6 +3,7 @@
 @using Wallet.Client.Web.Entities
 @using Wallet.Client.Web.Interfaces
 @using Wallet.Client.Web.Models
+@using Wallet.Client.Web.Models.Goals
 @inject HttpClient HttpClient
 @inject ILocalStorageService LocalStorageService
 
@@ -30,6 +31,10 @@
         </div>
 
         <button @onclick="AddGoal" class="btn btn-primary">Добавить цель</button>
+        @if (!string.IsNullOrEmpty(_addGoalError))
+        {
+            <div class="mt-2 text-danger">@_addGoalError</div>
+        }
     </div>
 </div>
 
@@ -37,46 +42,97 @@
     <h2>Список целей</h2>
     @if (_goals.Any())
     {
-    <div class="list-group">
-        @foreach (var goal in _goals)
-        {
-        <div class="list-group-item">
-            <h3>@goal.Name</h3>
-            <div class="d-flex align-items-center mb-2">
-                <label class="me-2">Прогресс:</label>
-                <div class="progress flex-grow-1" style="height: 20px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: @goal.GetPercentage%;" aria-valuenow="@goal.GetPercentage" aria-valuemin="0" aria-valuemax="100">
-                        @goal.GetPercentage%
+        <div class="list-group">
+            @foreach (var goal in _goals)
+            {
+                <div class="list-group-item">
+                    <h3>@goal.Name</h3>
+                    <div class="d-flex align-items-center mb-2">
+                        <label class="me-2">Прогресс:</label>
+                        <div class="progress flex-grow-1" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: @goal.GetPercentage%;" aria-valuenow="@goal.GetPercentage" aria-valuemin="0" aria-valuemax="100">
+                                @goal.GetPercentage%
+                            </div>
+                        </div>
+                        <span class="ms-2">@goal.GetPercentage%</span>
+                    </div>
+                    <p>Цель: @goal.TargetSum.ToString("C")</p>
+                    <p>Накоплено: @goal.CurrentSum.ToString("C")</p>
+                    <p>Дата цели: @goal.Deadline.ToString()</p>
+
+                    <div class="mt-3 border-top pt-3 d-flex align-items-center">
+                        <div>
+                            <h4>Добавить средства</h4>
+                            <div class="mb-3">
+                                <label for="@goal.Id" class="form-label">Сумма:</label>
+                                <InputNumber id="@goal.Id" class="form-control" @bind-Value="goal.AmountToAdd"/>
+                            </div>
+                            <button @onclick="@(() => AddSumToGoal(goal))" class="btn btn-success me-2">Добавить</button>
+                            <button @onclick="() => OpenEditGoalModal(goal)" class="btn btn-primary me-2">Изменить</button>
+                            <button @onclick="() => DeleteGoal(goal.Id)" class="btn btn-danger">Удалить</button>
+                            @* @if (!string.IsNullOrEmpty(goal.AddSumError)) *@
+                            @* { *@
+                            @*     <div class="text-danger mt-2">@goal.AddSumError</div> *@
+                            @* } *@
+                        </div>
                     </div>
                 </div>
-                <span class="ms-2">@goal.GetPercentage%</span>
-            </div>
-            <p>Цель: @goal.TargetSum.ToString("C")</p>
-            <p>Накоплено: @goal.CurrentSum.ToString("C")</p>
-            <p>Дата цели: @goal.Deadline</p>
-
-            <div class="mt-3 border-top pt-3">
-                <h4>Добавить средства</h4>
-                <div class="mb-3">
-                    <label for="@goal.Id" class="form-label">Сумма:</label>
-                    <InputNumber id="@goal.Id" class="form-control" @bind-Value="goal.AmountToAdd"/>
-                </div>
-                <button @onclick="@(() => AddSumToGoal(goal))" class="btn btn-success">Добавить</button>
-            </div>
+            }
         </div>
-        }
-    </div>
     }
     else
     {
-    <p>Список целей пуст.</p>
+        <p>Список целей пуст.</p>
     }
 </div>
+
+@if (_showEditGoalModal)
+{
+    <div class="modal fade show" id="editGoalModal" tabindex="-1" role="dialog" aria-labelledby="editGoalModalLabel" aria-modal="true" style="display: block;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editGoalModalLabel">Изменить цель</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseEditGoalModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editGoalName" class="form-label">Название цели:</label>
+                        <InputText id="editGoalName" class="form-control" @bind-Value="_editingGoal.Name"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editGoalSum" class="form-label">Сумма цели:</label>
+                        <InputNumber id="editGoalSum" class="form-control" @bind-Value="_editingGoal.TargetSum"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="editGoalDate" class="form-label">Дата цели:</label>
+                        <InputDate id="editGoalDate" class="form-control" @bind-Value="_editingGoal.Deadline"/>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_editGoalError))
+                    {
+                        <div class="text-danger mt-2">@_editGoalError</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEditGoalModal">Отмена</button>
+                    <button type="button" class="btn btn-primary" @onclick="UpdateGoal">Сохранить изменения</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
 
 @code {
 
     private List<Goal> _goals = new();
     private NewGoal _newGoal = new();
+    private Goal _editingGoal = new();
+    private bool _showEditGoalModal = false;
+    private string _addGoalError;
+    private string _editGoalError;
 
     protected async override Task OnInitializedAsync()
     {
@@ -85,6 +141,7 @@
 
     private async Task AddGoal()
     {
+        _addGoalError = string.Empty;
         var user = await LocalStorageService.GetItem<User>("user");
         var addGoalRequest = new AddGoalRequest(user.UserId, _newGoal.Name, _newGoal.TargetSum, _newGoal.Deadline);
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
@@ -98,7 +155,8 @@
         }
         else
         {
-            Console.WriteLine(await response.Content.ReadAsStringAsync());
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            _addGoalError = errorResponse?.Message ?? "Произошла ошибка при добавлении цели.";
         }
     }
 
@@ -122,6 +180,7 @@
 
     private async Task AddSumToGoal(Goal goal)
     {
+        //goal.AddSumError = string.Empty;
         var user = await LocalStorageService.GetItem<User>("user");
         var addSumToGoalRequest = new AddSumToGoalRequest(goal.Id, goal.AmountToAdd);
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
@@ -129,7 +188,64 @@
         var response = await HttpClient.PostAsJsonAsync("api/v1/goals/AddSumToGoal", addSumToGoalRequest);
         if (response.IsSuccessStatusCode)
         {
-            
+            goal.AmountToAdd = 0;
+            await GetGoals();
+            StateHasChanged();
+        }
+        else
+        {
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            //goal.AddSumError = errorResponse?.Message ?? "Произошла ошибка при добавлении средств.";
+        }
+    }
+
+    private void OpenEditGoalModal(Goal goal)
+    {
+        _editingGoal = new Goal
+        {
+            Id = goal.Id,
+            Name = goal.Name,
+            TargetSum = goal.TargetSum,
+            Deadline = goal.Deadline
+        };
+        _showEditGoalModal = true;
+        _editGoalError = string.Empty;
+    }
+
+    private void CloseEditGoalModal()
+    {
+        _showEditGoalModal = false;
+    }
+
+    private async Task UpdateGoal()
+    {
+        _editGoalError = string.Empty;
+        var user = await LocalStorageService.GetItem<User>("user");
+        var updateGoalRequest = new UpdateGoalRequest(_editingGoal.Id, _editingGoal.Name, _editingGoal.TargetSum, _editingGoal.Deadline);
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+
+        var response = await HttpClient.PutAsJsonAsync("api/v1/goals/", updateGoalRequest);
+        if (response.IsSuccessStatusCode)
+        {
+            _showEditGoalModal = false;
+            await GetGoals();
+            StateHasChanged();
+        }
+        else
+        {
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            _editGoalError = errorResponse?.Message ?? "Произошла ошибка при обновлении цели.";
+        }
+    }
+
+    private async Task DeleteGoal(string goalId)
+    {
+        var user = await LocalStorageService.GetItem<User>("user");
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+
+        var response = await HttpClient.DeleteAsync($"api/v1/goals/{goalId}");
+        if (response.IsSuccessStatusCode)
+        {
             await GetGoals();
             StateHasChanged();
         }
@@ -139,65 +255,10 @@
         }
     }
 
-    // private List<Goal> goals = new List<Goal>()
-    // {
-    //     new Goal { Id = 1, Name = "Новый ноутбук", TargetSum = 1500, CurrentSum = 500, TargetDate = DateTime.Now.AddMonths(3) },
-    //     new Goal { Id = 2, Name = "Отпуск", TargetSum = 3000, CurrentSum = 100, TargetDate = DateTime.Now.AddYears(1) }
-    // };
-    //
-    // private NewGoal newGoal = new NewGoal();
-    //
-    // public class Goal
-    // {
-    //     public int Id { get; set; }
-    //     public string Name { get; set; }
-    //     public decimal TargetSum { get; set; }
-    //     public decimal CurrentSum { get; set; } = 0;
-    //     public DateTime TargetDate { get; set; }
-    //     public decimal AmountToAdd { get; set; } = 0; // Для формы добавления средств
-    //
-    //     public int FillPercentage
-    //     {
-    //         get
-    //         {
-    //             if (TargetSum == 0) return 0; // Чтобы избежать деления на ноль
-    //             return (int)((CurrentSum / TargetSum) * 100);
-    //         }
-    //     }
-    // }
-    //
-    // public class NewGoal
-    // {
-    //     public string Name { get; set; } = "";
-    //     public decimal TargetSum { get; set; }
-    //     public DateTime TargetDate { get; set; } = DateTime.Now.AddMonths(6); // Пример даты по умолчанию
-    // }
-    //
-    //
-    // private void AddGoal()
-    // {
-    //     goals.Add(new Goal()
-    //     {
-    //         Id = goals.Any() ? goals.Max(g => g.Id) + 1 : 1,
-    //         Name = newGoal.Name,
-    //         TargetSum = newGoal.TargetSum,
-    //         TargetDate = newGoal.TargetDate
-    //     });
-    //     newGoal = new NewGoal(); // Очистка формы
-    // }
-    //
-    // private void AddFundsToGoal(Goal goal)
-    // {
-    //     if (goal.AmountToAdd > 0)
-    //     {
-    //         goal.CurrentSum += goal.AmountToAdd;
-    //         if (goal.CurrentSum > goal.TargetSum)
-    //         {
-    //             goal.CurrentSum = goal.TargetSum; // Нельзя накопить больше цели
-    //         }
-    //
-    //         goal.AmountToAdd = 0; // Очистка поля ввода суммы для добавления
-    //     }
-    // }
+    public class ErrorResponse
+    {
+        public string Message { get; set; }
+        public Dictionary<string, List<string>> Errors { get; set; }
+    }
 
 }

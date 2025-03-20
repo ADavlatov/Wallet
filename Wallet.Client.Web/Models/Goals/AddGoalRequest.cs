@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Wallet.Client.Web.Models;
+namespace Wallet.Client.Web.Models.Goals;
 
 public class AddGoalRequest(string userId, string name, decimal targetSum, DateOnly? deadline)
 {

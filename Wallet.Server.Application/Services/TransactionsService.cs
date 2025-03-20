@@ -18,9 +18,9 @@ public class TransactionsService(
         await transactionsRepository.AddTransaction(
             new Transaction(name, amount, date, type)
             {
-                User = user, 
-                UserId = userId, 
-                Category = category, 
+                User = user,
+                UserId = userId,
+                Category = category,
                 CategoryId = category.Id
             },
             cancellationToken);
@@ -43,15 +43,21 @@ public class TransactionsService(
         return await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
     }
 
-    public async Task UpdateTransaction(Guid transactionId, string? name, decimal? amount, DateOnly? date,
-        TransactionTypes? type, CancellationToken cancellationToken)
+    public async Task UpdateTransaction(Guid transactionId, Guid? categoryId, string? name, decimal? amount, DateOnly? date,
+        CancellationToken cancellationToken)
     {
         var transaction = await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
 
+        if (categoryId is not null)
+        {
+            var category = await categoriesRepository.GetCategoryById(categoryId.Value, cancellationToken);
+            transaction.CategoryId = category.Id;
+            transaction.Category = category;
+        }
+        
         transaction.Name = name ?? transaction.Name;
         transaction.Amount = amount ?? transaction.Amount;
         transaction.Date = date ?? transaction.Date;
-        transaction.Type = type ?? transaction.Type;
 
         await transactionsRepository.UpdateTransaction(transaction, cancellationToken);
     }

@@ -1,9 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Wallet.Client.Web.Models;
+namespace Wallet.Client.Web.Models.Catergories;
 
-public class GetCategoriesRequest(string userId, int type)
+public class AddCategoryRequest(string userId, string name, int type)
 {
     [JsonPropertyName("userId")] public string UserId { get; set; } = userId;
+    [JsonPropertyName("name")] public string Name { get; set; } = name;
     [JsonPropertyName("type")] public int Type { get; set; } = type;
 }
