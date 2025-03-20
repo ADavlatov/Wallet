@@ -11,15 +11,17 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
 {
     public async Task AddCategory(Category category, CancellationToken cancellationToken)
     {
+        var isExists = await db.Categories
+            .AnyAsync(x => x.UserId == category.UserId && x.Name == category.Name && x.Type == category.Type,
+                cancellationToken);
+
+        if (isExists)
+        {
+            throw new AlreadyExistsException("Category with this name and type already exists");
+        }
+
         db.Categories.Add(category);
         await db.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<bool> IsCategoryAlreadyExists(Guid userId, string name, TransactionTypes type, CancellationToken cancellationToken)
-    {
-        var category = await db.Categories
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Name == name && x.Type == type, cancellationToken);
-        return category is not null;
     }
 
     public async Task<List<Category>> GetAllCategoriesByUserId(Guid userId, CancellationToken cancellationToken)
@@ -31,7 +33,8 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
         return categories;
     }
 
-    public async Task<List<Category>> GetAllCategoriesByTransactionType(Guid userId, TransactionTypes transactionType, CancellationToken cancellationToken)
+    public async Task<List<Category>> GetAllCategoriesByTransactionType(Guid userId, TransactionTypes transactionType,
+        CancellationToken cancellationToken)
     {
         var categories = await db.Categories
             .Where(x => x.UserId == userId && x.Type == transactionType)
@@ -44,7 +47,7 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
     {
         var category = await db.Categories
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-        
+
         if (category is null)
         {
             throw new NotFoundException("Category not found");
@@ -57,7 +60,7 @@ public class CategoriesRepository(WalletContext db) : ICategoriesRepository
     {
         var category = await db.Categories
             .FirstOrDefaultAsync(x => x.UserId == userId && x.Name == name, cancellationToken);
-        
+
         if (category is null)
         {
             throw new NotFoundException("Category not found");

@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Wallet.Server.Infrastructure.Contexts;
@@ -22,11 +23,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<WalletContext>();
+
+builder.Services.AddDbContext<WalletContext>(o => o.UseSqlite("Data Source=wallet.db"));
 builder.Services.AddControllers(x => x.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.Section));
+builder.Services.Configure<UrlOptions>(builder.Configuration.GetSection(UrlOptions.Section));
 
 builder.Services.AddSwaggerGen(x =>
 {
@@ -87,10 +90,8 @@ app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 app.Run();
 
+//:TODO почнинить переключение периодово на странице статистики
 //:TODO выпилить хардкод
-//:TODO переделать репозитории
-//:TODO добавить изменение и удаление категорий и транзакций на клиенте
-//:TODO добавить лк на клиенте
 //:TODO добавить валидацию запросов
 //:TODO добавить нормальную обработку ошибок
 //:TODO добавить логгирование 

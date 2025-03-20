@@ -1,13 +1,19 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 using Wallet.Server.Application.Models.Notifications;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Domain.Interfaces.Services;
+using Wallet.Server.Infrastructure.Options;
 
 namespace Wallet.Server.Application.Services;
 
-public class NotificationsService(INotificationsRepository notificationsRepository, IUsersRepository usersRepository, HttpClient httpClient)
+public class NotificationsService(
+    INotificationsRepository notificationsRepository,
+    IUsersRepository usersRepository,
+    HttpClient httpClient,
+    IOptions<UrlOptions> urlOptions)
     : INotificationsService
 {
     public async Task AddNotification(Guid userId, string name, string description, DateTime dateTime,
@@ -26,13 +32,15 @@ public class NotificationsService(INotificationsRepository notificationsReposito
                 User = user
             },
             cancellationToken);
-        
-       
-        var request = new AddNotificationToQuartzRequest(notification.Id, (long)user.TelegramUserId, 
+
+
+        httpClient.BaseAddress = new Uri(urlOptions.Value.QuartzUrl);
+        var request = new AddNotificationToQuartzRequest(notification.Id, (long)user.TelegramUserId,
             name, description, dateTime);
-        var response = await httpClient.PostAsJsonAsync("http://localhost:5230/api/v1/notifications/ScheduleNotification", 
+        var response = await httpClient.PostAsJsonAsync(
+            "/api/v1/notifications/ScheduleNotification",
             request, cancellationToken);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             throw new ArgumentException();

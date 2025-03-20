@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
-using Wallet.Server.Domain.Interfaces;
 using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Infrastructure.Contexts;
 
@@ -11,16 +10,17 @@ public class UsersRepository(WalletContext db) : IUsersRepository
 {
     public async Task<User> AddUser(User user, CancellationToken cancellationToken)
     {
+        var isExists = await db.Users
+            .AnyAsync(x => x.Username == user.Username, cancellationToken);
+
+        if (isExists)
+        {
+            throw new AlreadyExistsException("User already exists");
+        }
+
         db.Users.Add(user);
         await db.SaveChangesAsync(cancellationToken);
         return user;
-    }
-
-    public async Task<bool> IsUserExists(string username, CancellationToken cancellationToken)
-    {
-        var user = await db.Users
-            .FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
-        return user is not null;
     }
 
     public async Task<List<User>> GetAllUsers(CancellationToken cancellationToken)

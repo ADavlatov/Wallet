@@ -19,28 +19,17 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
 {
     public async Task<AuthDto> SignUp(string username, string password, CancellationToken cancellationToken)
     {
-        var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
-        if (isUserExists)
-        {
-            throw new AlreadyExistsException("User with this username already exists");
-        }
-
         var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
-        var user = await usersRepository.AddUser(new User(username, passwordHash, passwordSalt,
-            ApiKeyGenerator.GenerateApiKey()), cancellationToken);
+        var user = new User(username, passwordHash, passwordSalt, ApiKeyGenerator.GenerateApiKey());
+        var addedUser = await usersRepository.AddUser(user, cancellationToken);
 
-        return TokenHelper.CreateTokensPair(options, user.Id.ToString());
+        return TokenHelper.CreateTokensPair(options, addedUser.Id.ToString());
     }
 
     public async Task<AuthDto> SignIn(string username, string password, CancellationToken cancellationToken)
     {
-        var isUserExists = await usersRepository.IsUserExists(username, cancellationToken);
-        if (!isUserExists)
-        {
-            throw new NotFoundException("User does not exist");
-        }
-
         var user = await usersRepository.GetUserByUsername(username, cancellationToken);
+
         if (!PasswordHashHelper.ValidateHash(password, user.PasswordSalt, user.PasswordHash))
         {
             throw new AuthenticationException("Wrong password");

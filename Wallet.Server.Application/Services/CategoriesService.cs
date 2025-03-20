@@ -7,22 +7,19 @@ using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Application.Services;
 
-public class CategoriesService(ICategoriesRepository categoriesRepository, IUsersRepository usersRepository) : ICategoriesService
+public class CategoriesService(ICategoriesRepository categoriesRepository, IUsersRepository usersRepository)
+    : ICategoriesService
 {
     public async Task AddCategory(Guid userId, string name, TransactionTypes type, CancellationToken cancellationToken)
     {
         var user = await usersRepository.GetUserById(userId, cancellationToken);
-        var isExists = await categoriesRepository.IsCategoryAlreadyExists(userId, name, type, cancellationToken);
-        if (isExists)
-        {
-            throw new AlreadyExistsException("Category with this name and type already exists");
-        }
-
+        
         await categoriesRepository.AddCategory(
             new Category(name, type)
             {
-                User = user, UserId = user.Id
-            }, 
+                User = user,
+                UserId = user.Id
+            },
             cancellationToken);
     }
 
@@ -31,7 +28,8 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
         return await categoriesRepository.GetAllCategoriesByUserId(userId, cancellationToken);
     }
 
-    public async Task<List<Category>> GetCategoriesByType(Guid userId, TransactionTypes type, CancellationToken cancellationToken)
+    public async Task<List<Category>> GetCategoriesByType(Guid userId, TransactionTypes type,
+        CancellationToken cancellationToken)
     {
         return await categoriesRepository.GetAllCategoriesByTransactionType(userId, type, cancellationToken);
     }
@@ -50,7 +48,6 @@ public class CategoriesService(ICategoriesRepository categoriesRepository, IUser
     {
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
 
-        //TODO учитывать пустые строки
         category.Name = name ?? category.Name;
 
         await categoriesRepository.UpdateCategory(category, cancellationToken);
