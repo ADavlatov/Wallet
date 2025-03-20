@@ -1,9 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Wallet.Server.Application.Models.Users;
-using Wallet.Server.Domain;
 using Wallet.Server.Domain.DTOs;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
@@ -11,7 +8,6 @@ using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Domain.Interfaces.Services;
 using Wallet.Server.Infrastructure.Helpers;
 using Wallet.Server.Infrastructure.Options;
-using AuthenticationException = System.Security.Authentication.AuthenticationException;
 
 namespace Wallet.Server.Application.Services;
 

@@ -13,7 +13,7 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
     {
         var periodDates = PeriodHelper.GetPeriodDates(period);
         var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate, 
-                periodDates.EndDate, cancellationToken); // Получаем доходы
+                periodDates.EndDate, cancellationToken); 
 
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Доходы");

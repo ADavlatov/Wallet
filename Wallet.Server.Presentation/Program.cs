@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -34,8 +35,8 @@ builder.Services.Configure<UrlOptions>(builder.Configuration.GetSection(UrlOptio
 builder.Services.AddSwaggerGen(x =>
 {
     x.SwaggerDoc("v1", new OpenApiInfo { Title = "Wallet", Version = "v1" });
-    // var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    // x.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    x.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     x.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -90,6 +91,7 @@ app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 app.Run();
 
+//:TODO пофиксить обновление пароля
 //:TODO почнинить переключение периодово на странице статистики
 //:TODO выпилить хардкод
 //:TODO добавить валидацию запросов
