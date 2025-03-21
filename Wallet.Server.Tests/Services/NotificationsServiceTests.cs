@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Wallet.Server.Application.Services;
 using Wallet.Server.Domain.Entities;
@@ -19,13 +20,15 @@ public class NotificationsServiceTests
         Mock<IUsersRepository> usersRepositoryMock = new();
         Mock<HttpClient> httpClientMock = new();
         Mock<IOptions<UrlOptions>> urlOptionsMock = new();
+        Mock<ILogger<NotificationsService>> loggerMock = new();
         _notificationsService = new NotificationsService(
             _notificationsRepositoryMock.Object,
             usersRepositoryMock.Object,
             httpClientMock.Object,
-            urlOptionsMock.Object);
+            urlOptionsMock.Object, 
+            loggerMock.Object);
     }
-    
+
     [Fact]
     public async Task GetNotifications_ShouldReturnNotificationsFromRepository()
     {
@@ -47,47 +50,55 @@ public class NotificationsServiceTests
     }
 
     [Fact]
-    public async Task UpdateNotification_ShouldUpdateNotificationInRepository_WhenNotificationExistsAndPropertiesAreProvided()
+    public async Task
+        UpdateNotification_ShouldUpdateNotificationInRepository_WhenNotificationExistsAndPropertiesAreProvided()
     {
         // Arrange
         var notificationId = Guid.NewGuid();
         var existingNotification = new Notification("Old Name", "Old Desc", DateTime.UtcNow) { Id = notificationId };
-        _notificationsRepositoryMock.Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
+        _notificationsRepositoryMock
+            .Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingNotification);
         var newName = "New Name";
         var newDescription = "New Desc";
         var newDateTime = DateTime.UtcNow.AddDays(1);
 
         // Act
-        await _notificationsService.UpdateNotification(notificationId, newName, newDescription, newDateTime, CancellationToken.None);
+        await _notificationsService.UpdateNotification(notificationId, newName, newDescription, newDateTime,
+            CancellationToken.None);
 
         // Assert
         Assert.Equal(newName, existingNotification.Name);
         Assert.Equal(newDescription, existingNotification.Description);
         Assert.Equal(newDateTime, existingNotification.DateTime);
-        _notificationsRepositoryMock.Verify(repo => repo.UpdateNotification(existingNotification, It.IsAny<CancellationToken>()), Times.Once);
+        _notificationsRepositoryMock.Verify(
+            repo => repo.UpdateNotification(existingNotification, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task UpdateNotification_ShouldUpdateNotificationInRepository_WhenNotificationExistsAndSomePropertiesAreNull()
+    public async Task
+        UpdateNotification_ShouldUpdateNotificationInRepository_WhenNotificationExistsAndSomePropertiesAreNull()
     {
         // Arrange
         var notificationId = Guid.NewGuid();
         var existingNotification = new Notification("Old Name", "Old Desc", DateTime.UtcNow) { Id = notificationId };
-        _notificationsRepositoryMock.Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
+        _notificationsRepositoryMock
+            .Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(existingNotification);
         string? newName = null;
         string? newDescription = null;
         DateTime? newDateTime = null;
 
         // Act
-        await _notificationsService.UpdateNotification(notificationId, newName, newDescription, newDateTime, CancellationToken.None);
+        await _notificationsService.UpdateNotification(notificationId, newName, newDescription, newDateTime,
+            CancellationToken.None);
 
         // Assert
         Assert.Equal("Old Name", existingNotification.Name);
         Assert.Equal("Old Desc", existingNotification.Description);
         Assert.Equal(existingNotification.DateTime, existingNotification.DateTime);
-        _notificationsRepositoryMock.Verify(repo => repo.UpdateNotification(existingNotification, It.IsAny<CancellationToken>()), Times.Once);
+        _notificationsRepositoryMock.Verify(
+            repo => repo.UpdateNotification(existingNotification, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -95,14 +106,17 @@ public class NotificationsServiceTests
     {
         // Arrange
         var notificationId = Guid.NewGuid();
-        _notificationsRepositoryMock.Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
+        _notificationsRepositoryMock
+            .Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NotFoundException("Notification not found"));
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            _notificationsService.UpdateNotification(notificationId, "New Name", "New Desc", DateTime.UtcNow.AddDays(1), CancellationToken.None));
+            _notificationsService.UpdateNotification(notificationId, "New Name", "New Desc", DateTime.UtcNow.AddDays(1),
+                CancellationToken.None));
 
-        _notificationsRepositoryMock.Verify(repo => repo.UpdateNotification(It.IsAny<Notification>(), It.IsAny<CancellationToken>()), Times.Never);
+        _notificationsRepositoryMock.Verify(
+            repo => repo.UpdateNotification(It.IsAny<Notification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -111,14 +125,16 @@ public class NotificationsServiceTests
         // Arrange
         var notificationId = Guid.NewGuid();
         var notificationToDelete = new Notification("Test", "Desc", DateTime.UtcNow) { Id = notificationId };
-        _notificationsRepositoryMock.Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
+        _notificationsRepositoryMock
+            .Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(notificationToDelete);
 
         // Act
         await _notificationsService.DeleteNotification(notificationId, CancellationToken.None);
 
         // Assert
-        _notificationsRepositoryMock.Verify(repo => repo.DeleteNotification(notificationToDelete, It.IsAny<CancellationToken>()), Times.Once);
+        _notificationsRepositoryMock.Verify(
+            repo => repo.DeleteNotification(notificationToDelete, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -126,13 +142,15 @@ public class NotificationsServiceTests
     {
         // Arrange
         var notificationId = Guid.NewGuid();
-        _notificationsRepositoryMock.Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
+        _notificationsRepositoryMock
+            .Setup(repo => repo.GetNotificationById(notificationId, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NotFoundException("Notification not found"));
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() =>
             _notificationsService.DeleteNotification(notificationId, CancellationToken.None));
 
-        _notificationsRepositoryMock.Verify(repo => repo.DeleteNotification(It.IsAny<Notification>(), It.IsAny<CancellationToken>()), Times.Never);
+        _notificationsRepositoryMock.Verify(
+            repo => repo.DeleteNotification(It.IsAny<Notification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 }

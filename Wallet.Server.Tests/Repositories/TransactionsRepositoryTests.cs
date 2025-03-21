@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
@@ -9,6 +11,8 @@ namespace Wallet.Server.Tests.Repositories;
 
 public class TransactionsRepositoryTests
 {
+    private readonly Mock<ILogger<TransactionsRepository>> _loggerMock = new();
+
     private WalletContext CreateInMemoryDbContext(List<Transaction>? initialTransactions = null,
         List<Category>? initialCategories = null)
     {
@@ -40,7 +44,7 @@ public class TransactionsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var transaction = new Transaction("Test Transaction", 100.50m, DateOnly.FromDateTime(DateTime.UtcNow),
             TransactionTypes.Expense) { UserId = userId };
@@ -75,7 +79,7 @@ public class TransactionsRepositoryTests
                 TransactionTypes.Expense) { UserId = userId, CategoryId = categoryId, Category = category }
         };
         var context = CreateInMemoryDbContext(transactions, new List<Category> { category });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         var result =
@@ -93,7 +97,7 @@ public class TransactionsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -124,7 +128,7 @@ public class TransactionsRepositoryTests
                 TransactionTypes.Expense) { UserId = userId, CategoryId = categoryId1 }
         };
         var context = CreateInMemoryDbContext(transactions, new List<Category> { category1, category2 });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetAllTransactionsByCategory(categoryId1, CancellationToken.None);
@@ -140,7 +144,7 @@ public class TransactionsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
         var categoryId = Guid.NewGuid();
 
         // Act & Assert
@@ -158,7 +162,7 @@ public class TransactionsRepositoryTests
             new Transaction("Test Transaction", 75.00m, DateOnly.FromDateTime(DateTime.UtcNow),
                 TransactionTypes.Expense) { Id = transactionId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Transaction> { transaction });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetTransactionById(transactionId, CancellationToken.None);
@@ -174,7 +178,7 @@ public class TransactionsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
         var transactionId = Guid.NewGuid();
 
         // Act & Assert
@@ -190,7 +194,7 @@ public class TransactionsRepositoryTests
         var transaction = new Transaction("Test Transaction", 1200.00m, DateOnly.FromDateTime(DateTime.UtcNow),
             TransactionTypes.Expense) { UserId = userId };
         var context = CreateInMemoryDbContext(new List<Transaction> { transaction });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetTransactionByName(userId, "Test Transaction", CancellationToken.None);
@@ -206,7 +210,7 @@ public class TransactionsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var transactionName = "NonExisting Transaction";
 
@@ -236,7 +240,7 @@ public class TransactionsRepositoryTests
                 { UserId = userId, CategoryId = categoryId, Category = category }
         };
         var context = CreateInMemoryDbContext(transactions, new List<Category> { category });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetTransactionsByPeriod(userId, startDate, endDate, CancellationToken.None);
@@ -253,7 +257,7 @@ public class TransactionsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var startDate = new DateOnly(2025, 4, 1);
         var endDate = new DateOnly(2025, 4, 10);
@@ -287,7 +291,7 @@ public class TransactionsRepositoryTests
                 { UserId = userId }
         };
         var context = CreateInMemoryDbContext(transactions, new List<Category> { category });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetTransactionsByTypeAndPeriod(userId, TransactionTypes.Expense, startDate,
@@ -306,7 +310,7 @@ public class TransactionsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var startDate = new DateOnly(2025, 4, 1);
         var endDate = new DateOnly(2025, 4, 10);
@@ -330,7 +334,7 @@ public class TransactionsRepositoryTests
             new Transaction("Old Name", 50.00m, new DateOnly(2025, 3, 20), TransactionTypes.Expense)
                 { Id = transactionId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Transaction> { existingTransaction });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         var transactionToUpdate = await context.Transactions.FindAsync(transactionId);
@@ -361,7 +365,7 @@ public class TransactionsRepositoryTests
             new Transaction("To Delete", 25.00m, new DateOnly(2025, 3, 20), TransactionTypes.Expense)
                 { Id = transactionId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Transaction> { transactionToDelete });
-        var repository = new TransactionsRepository(context);
+        var repository = new TransactionsRepository(context, _loggerMock.Object);
 
         // Act
         await repository.DeleteTransaction(transactionToDelete, CancellationToken.None);

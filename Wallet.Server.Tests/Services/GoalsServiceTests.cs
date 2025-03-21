@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Logging;
+using Moq;
 using Wallet.Server.Application.Services;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
@@ -16,7 +17,8 @@ public class GoalsServiceTests
     {
         _goalsRepositoryMock = new Mock<IGoalsRepository>();
         _usersRepositoryMock = new Mock<IUsersRepository>();
-        _goalsService = new GoalsService(_goalsRepositoryMock.Object, _usersRepositoryMock.Object);
+        Mock<ILogger<GoalsService>> loggerMock = new();
+        _goalsService = new GoalsService(_goalsRepositoryMock.Object, _usersRepositoryMock.Object, loggerMock.Object);
     }
 
     [Fact]

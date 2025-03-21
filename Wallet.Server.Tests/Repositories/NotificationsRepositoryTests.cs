@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Infrastructure.Contexts;
@@ -8,6 +10,8 @@ namespace Wallet.Server.Tests.Repositories;
 
 public class NotificationsRepositoryTests
 {
+    private readonly Mock<ILogger<NotificationsRepository>> _loggerMock = new();
+    
     private WalletContext CreateInMemoryDbContext(List<Notification>? initialNotifications = null)
     {
         var options = new DbContextOptionsBuilder<WalletContext>()
@@ -32,7 +36,7 @@ public class NotificationsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new NotificationsRepository(context);
+        var repository = new NotificationsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var notification = new Notification("Test Name", "Test Description", DateTime.UtcNow) { UserId = userId };
 
@@ -60,7 +64,7 @@ public class NotificationsRepositoryTests
         var notification = new Notification("Existing Name", "Existing Description", dateTime)
             { Id = notificationId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Notification> { notification });
-        var repository = new NotificationsRepository(context);
+        var repository = new NotificationsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetNotificationById(notificationId, CancellationToken.None);
@@ -80,7 +84,7 @@ public class NotificationsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new NotificationsRepository(context);
+        var repository = new NotificationsRepository(context, _loggerMock.Object);
         var notificationId = Guid.NewGuid();
 
         // Act & Assert
@@ -104,7 +108,7 @@ public class NotificationsRepositoryTests
             new("Name 3", "Description 3", dateTime3) { UserId = userId2 }
         };
         var context = CreateInMemoryDbContext(notifications);
-        var repository = new NotificationsRepository(context);
+        var repository = new NotificationsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetNotifications(userId1, CancellationToken.None);
@@ -120,7 +124,7 @@ public class NotificationsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new NotificationsRepository(context);
+        var repository = new NotificationsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -141,7 +145,7 @@ public class NotificationsRepositoryTests
         var existingNotification = new Notification("Old Name", "Old Description", dateTime)
             { Id = notificationId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Notification> { existingNotification });
-        var repository = new NotificationsRepository(context);
+        var repository = new NotificationsRepository(context, _loggerMock.Object);
         var updatedDateTime = DateTime.UtcNow.AddDays(1);
 
         // Act
@@ -172,7 +176,7 @@ public class NotificationsRepositoryTests
         var notificationToDelete = new Notification("To Delete", "Description", dateTime)
             { Id = notificationId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Notification> { notificationToDelete });
-        var repository = new NotificationsRepository(context);
+        var repository = new NotificationsRepository(context, _loggerMock.Object);
 
         // Act
         await repository.DeleteNotification(notificationToDelete, CancellationToken.None);

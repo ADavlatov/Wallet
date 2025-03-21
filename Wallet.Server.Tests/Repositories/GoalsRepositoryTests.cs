@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Infrastructure.Contexts;
@@ -8,6 +10,8 @@ namespace Wallet.Server.Tests.Repositories;
 
 public class GoalsRepositoryTests
 {
+    private readonly Mock<ILogger<GoalsRepository>> _loggerMock = new();
+    
     private WalletContext CreateInMemoryDbContext(List<Goal>? initialGoals = null)
     {
         var options = new DbContextOptionsBuilder<WalletContext>()
@@ -32,7 +36,7 @@ public class GoalsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
         var goal = new Goal("Test Goal", 10000) { UserId = Guid.NewGuid() };
 
         // Act
@@ -52,7 +56,7 @@ public class GoalsRepositoryTests
         var goalId = Guid.NewGuid();
         var existingGoal = new Goal("Test Goal", 5000) { Id = goalId, UserId = Guid.NewGuid(), CurrentSum = 1000 };
         var context = CreateInMemoryDbContext(new List<Goal> { existingGoal });
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
         decimal amountToAdd = 500;
 
         // Act
@@ -79,7 +83,7 @@ public class GoalsRepositoryTests
             new("Test Goal 3", 500) { UserId = userId2 }
         };
         var context = CreateInMemoryDbContext(goals);
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetAllGoalsByUserId(userId1, CancellationToken.None);
@@ -95,7 +99,7 @@ public class GoalsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -113,7 +117,7 @@ public class GoalsRepositoryTests
         var goalId = Guid.NewGuid();
         var goal = new Goal("Test Goal", 1500) { Id = goalId, UserId = Guid.NewGuid() };
         var context = CreateInMemoryDbContext(new List<Goal> { goal });
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetGoalById(goalId, CancellationToken.None);
@@ -129,7 +133,7 @@ public class GoalsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
         var goalId = Guid.NewGuid();
 
         // Act & Assert
@@ -143,7 +147,7 @@ public class GoalsRepositoryTests
         var userId = Guid.NewGuid();
         var goal = new Goal("Test Goal", 3000) { UserId = userId };
         var context = CreateInMemoryDbContext(new List<Goal> { goal });
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetGoalByName(userId, "Test Goal", CancellationToken.None);
@@ -159,7 +163,7 @@ public class GoalsRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var goalName = "NonExisting Goal";
 
@@ -175,7 +179,7 @@ public class GoalsRepositoryTests
         var userId = Guid.NewGuid();
         var existingGoal = new Goal("Old Goal", 5000) { Id = goalId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Goal> { existingGoal });
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
 
         // Act
         var goalToUpdate = await context.Goals.FindAsync(goalId);
@@ -200,7 +204,7 @@ public class GoalsRepositoryTests
         var userId = Guid.NewGuid();
         var goalToDelete = new Goal("To Delete", 1000) { Id = goalId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Goal> { goalToDelete });
-        var repository = new GoalsRepository(context);
+        var repository = new GoalsRepository(context, _loggerMock.Object);
 
         // Act
         await repository.DeleteGoal(goalToDelete, CancellationToken.None);

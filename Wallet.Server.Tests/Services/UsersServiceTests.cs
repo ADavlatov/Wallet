@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Wallet.Server.Application.Services;
@@ -14,14 +15,15 @@ public class UsersServiceTests
 {
     private readonly Mock<IUsersRepository> _usersRepositoryMock;
     private readonly Mock<IOptions<JwtOptions>> _jwtOptionsMock;
+    private readonly Mock<ILogger<UsersService>> _loggerMock;
     private readonly UsersService _usersService;
-    private readonly JwtOptions _jwtOptions;
 
     public UsersServiceTests()
     {
         _usersRepositoryMock = new Mock<IUsersRepository>();
         _jwtOptionsMock = new Mock<IOptions<JwtOptions>>();
-        _jwtOptions = new JwtOptions
+        _loggerMock = new Mock<ILogger<UsersService>>();
+        var jwtOptions = new JwtOptions
         {
             Issuer = "testissuer",
             Audience = "testaudience",
@@ -29,8 +31,8 @@ public class UsersServiceTests
             AccessTokenLifeTimeFromDays = 1,
             RefreshTokenLifeTimeFromDays = 7
         };
-        _jwtOptionsMock.Setup(o => o.Value).Returns(_jwtOptions);
-        _usersService = new UsersService(_usersRepositoryMock.Object, _jwtOptionsMock.Object);
+        _jwtOptionsMock.Setup(o => o.Value).Returns(jwtOptions);
+        _usersService = new UsersService(_usersRepositoryMock.Object, _jwtOptionsMock.Object, _loggerMock.Object);
     }
 
     [Fact]
@@ -39,7 +41,7 @@ public class UsersServiceTests
         // Arrange
         var username = "testuser";
         var password = "testpassword";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var user = new User(username, passwordHash, passwordSalt, "testapikey") { Id = userId };
 
@@ -64,7 +66,7 @@ public class UsersServiceTests
         var username = "testuser";
         var password = "wrongpassword";
         var correctPassword = "testpassword";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(correctPassword);
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(correctPassword, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var user = new User(username, passwordHash, passwordSalt, "testapikey") { Id = userId };
 
@@ -81,7 +83,7 @@ public class UsersServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var authDto = TokenHelper.CreateTokensPair(_jwtOptionsMock.Object, userId.ToString());
+        var authDto = TokenHelper.CreateTokensPair(_jwtOptionsMock.Object, userId.ToString(), _loggerMock.Object);
         var refreshToken = authDto.RefreshToken;
 
         // Act
@@ -109,7 +111,7 @@ public class UsersServiceTests
     {
         // Arrange
         var invalidId = "notaguid";
-        var refreshToken = TokenHelper.CreateTokensPair(_jwtOptionsMock.Object, invalidId);
+        var refreshToken = TokenHelper.CreateTokensPair(_jwtOptionsMock.Object, invalidId, _loggerMock.Object);
 
         // Act & Assert
         await Assert.ThrowsAsync<AuthenticationException>(() => _usersService.RefreshTokens(refreshToken.RefreshToken, CancellationToken.None));

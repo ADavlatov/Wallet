@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Logging;
+using Moq;
 using Wallet.Server.Application.Services;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
@@ -17,7 +18,8 @@ public class CategoriesServiceTests
     {
         _categoriesRepositoryMock = new Mock<ICategoriesRepository>();
         _usersRepositoryMock = new Mock<IUsersRepository>();
-        _categoriesService = new CategoriesService(_categoriesRepositoryMock.Object, _usersRepositoryMock.Object);
+        Mock<ILogger<CategoriesService>> loggerMock = new();
+        _categoriesService = new CategoriesService(_categoriesRepositoryMock.Object, _usersRepositoryMock.Object, loggerMock.Object);
     }
 
     [Fact]

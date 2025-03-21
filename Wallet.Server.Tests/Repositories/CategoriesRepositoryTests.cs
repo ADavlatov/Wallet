@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Exceptions;
@@ -9,6 +11,8 @@ namespace Wallet.Server.Tests.Repositories;
 
 public class CategoriesRepositoryTests
 {
+    private readonly Mock<ILogger<CategoriesRepository>> _loggerMock = new();
+
     private WalletContext CreateInMemoryDbContext(List<Category>? initialCategories = null)
     {
         var options = new DbContextOptionsBuilder<WalletContext>()
@@ -33,7 +37,7 @@ public class CategoriesRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
         var category = new Category("Test Category", TransactionTypes.Expense) { UserId = Guid.NewGuid() };
 
         // Act
@@ -53,7 +57,7 @@ public class CategoriesRepositoryTests
         var userId = Guid.NewGuid();
         var existingCategory = new Category("Existing Category", TransactionTypes.Income) { UserId = userId };
         var context = CreateInMemoryDbContext(new List<Category> { existingCategory });
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
         var newCategory = new Category("Existing Category", TransactionTypes.Income) { UserId = userId };
 
         // Act & Assert
@@ -73,7 +77,7 @@ public class CategoriesRepositoryTests
             new("Category 3", TransactionTypes.Expense) { UserId = userId2 }
         };
         var context = CreateInMemoryDbContext(categories);
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetAllCategoriesByUserId(userId1, CancellationToken.None);
@@ -89,7 +93,7 @@ public class CategoriesRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act
@@ -112,7 +116,7 @@ public class CategoriesRepositoryTests
             new("Category 3", TransactionTypes.Expense) { UserId = userId }
         };
         var context = CreateInMemoryDbContext(categories);
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetAllCategoriesByTransactionType(userId, TransactionTypes.Expense, CancellationToken.None);
@@ -129,7 +133,7 @@ public class CategoriesRepositoryTests
         // Arrange
         var userId = Guid.NewGuid();
         var context = CreateInMemoryDbContext();
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetAllCategoriesByTransactionType(userId, TransactionTypes.Income, CancellationToken.None);
@@ -146,7 +150,7 @@ public class CategoriesRepositoryTests
         var categoryId = Guid.NewGuid();
         var category = new Category("Test Category", TransactionTypes.Expense) { Id = categoryId, UserId = Guid.NewGuid() };
         var context = CreateInMemoryDbContext(new List<Category> { category });
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetCategoryById(categoryId, CancellationToken.None);
@@ -162,7 +166,7 @@ public class CategoriesRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
         var categoryId = Guid.NewGuid();
 
         // Act & Assert
@@ -176,7 +180,7 @@ public class CategoriesRepositoryTests
         var userId = Guid.NewGuid();
         var category = new Category("Test Category", TransactionTypes.Expense) { UserId = userId };
         var context = CreateInMemoryDbContext(new List<Category> { category });
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetCategoryByName(userId, "Test Category", CancellationToken.None);
@@ -192,7 +196,7 @@ public class CategoriesRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
         var categoryName = "NonExisting Category";
 
@@ -208,7 +212,7 @@ public class CategoriesRepositoryTests
         var userId = Guid.NewGuid();
         var existingCategory = new Category("Old Name", TransactionTypes.Expense) { Id = categoryId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Category> { existingCategory });
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
 
         // Act
         var categoryToUpdate = await context.Categories.FindAsync(categoryId); 
@@ -233,7 +237,7 @@ public class CategoriesRepositoryTests
         var userId = Guid.NewGuid();
         var categoryToDelete = new Category("To Delete", TransactionTypes.Expense) { Id = categoryId, UserId = userId };
         var context = CreateInMemoryDbContext(new List<Category> { categoryToDelete });
-        var repository = new CategoriesRepository(context);
+        var repository = new CategoriesRepository(context, _loggerMock.Object);
 
         // Act
         await repository.DeleteCategory(categoryToDelete, CancellationToken.None);

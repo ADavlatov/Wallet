@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Exceptions;
 using Wallet.Server.Infrastructure.Contexts;
@@ -9,6 +11,8 @@ namespace Wallet.Server.Tests.Repositories;
 
 public class UsersRepositoryTests
 {
+    private readonly Mock<ILogger<UsersRepository>> _loggerMock = new();
+
     private WalletContext CreateInMemoryDbContext(List<User>? initialUsers = null)
     {
         var options = new DbContextOptionsBuilder<WalletContext>()
@@ -33,11 +37,11 @@ public class UsersRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new UsersRepository(context);
-        var username = "testuser";
-        var password = "testpassword";
-        var apiKey = "testkey";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+        var repository = new UsersRepository(context, _loggerMock.Object);
+        var username = "Test User";
+        var password = "Test Password";
+        var apiKey = "Test Key";
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, _loggerMock.Object);
         var user = new User(username, passwordHash, passwordSalt, apiKey);
 
         // Act
@@ -57,14 +61,14 @@ public class UsersRepositoryTests
     public async Task AddUser_ShouldThrowAlreadyExistsException_WhenUserExists()
     {
         // Arrange
-        var username = "existinguser";
-        var password = "testpassword";
-        var apiKey = "existingkey";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+        var username = "Existing User";
+        var password = "Test Password";
+        var apiKey = "Existing Key";
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, _loggerMock.Object);
         var existingUser = new User(username, passwordHash, passwordSalt, apiKey);
         var context = CreateInMemoryDbContext(new List<User> { existingUser });
-        var repository = new UsersRepository(context);
-        var newUser = new User(username, [0x05, 0x06], [0x07, 0x08], "newkey");
+        var repository = new UsersRepository(context, _loggerMock.Object);
+        var newUser = new User(username, [0x05, 0x06], [0x07, 0x08], "New Key");
 
         // Act & Assert
         await Assert.ThrowsAsync<AlreadyExistsException>(() => repository.AddUser(newUser, CancellationToken.None));
@@ -76,13 +80,13 @@ public class UsersRepositoryTests
         // Arrange
         var passwordHash1 = new byte[]{ 0x01 };
         var passwordSalt1 = new byte[]{ 0x02 };
-        var user1 = new User("user1", passwordHash1, passwordSalt1, "key1");
+        var user1 = new User("User 1", passwordHash1, passwordSalt1, "Key 1");
         var passwordHash2 = new byte[]{ 0x03 };
         var passwordSalt2 = new byte[]{ 0x04 };
-        var user2 = new User("user2", passwordHash2, passwordSalt2, "key2");
+        var user2 = new User("User 2", passwordHash2, passwordSalt2, "Key 2");
         var users = new List<User> { user1, user2 };
         var context = CreateInMemoryDbContext(users);
-        var repository = new UsersRepository(context);
+        var repository = new UsersRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetAllUsers(CancellationToken.None);
@@ -97,7 +101,7 @@ public class UsersRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new UsersRepository(context);
+        var repository = new UsersRepository(context, _loggerMock.Object);
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => repository.GetAllUsers(CancellationToken.None));
@@ -108,13 +112,13 @@ public class UsersRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var username = "testuser";
-        var password = "testpassword";
-        var apiKey = "testkey";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+        var username = "Test User";
+        var password = "Test Password";
+        var apiKey = "Test Key";
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, _loggerMock.Object);
         var user = new User(username, passwordHash, passwordSalt, apiKey) { Id = userId };
         var context = CreateInMemoryDbContext(new List<User> { user });
-        var repository = new UsersRepository(context);
+        var repository = new UsersRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetUserById(userId, CancellationToken.None);
@@ -130,7 +134,7 @@ public class UsersRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new UsersRepository(context);
+        var repository = new UsersRepository(context, _loggerMock.Object);
         var userId = Guid.NewGuid();
 
         // Act & Assert
@@ -141,13 +145,13 @@ public class UsersRepositoryTests
     public async Task GetUserByUsername_ShouldReturnUser_WhenUserExists()
     {
         // Arrange
-        var username = "testuser";
-        var password = "testpassword";
-        var apiKey = "testkey";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+        var username = "Test User";
+        var password = "Test Password";
+        var apiKey = "Test Key";
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, _loggerMock.Object);
         var user = new User(username, passwordHash, passwordSalt, apiKey);
         var context = CreateInMemoryDbContext(new List<User> { user });
-        var repository = new UsersRepository(context);
+        var repository = new UsersRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetUserByUsername(username, CancellationToken.None);
@@ -162,8 +166,8 @@ public class UsersRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new UsersRepository(context);
-        var username = "nonexistinguser";
+        var repository = new UsersRepository(context, _loggerMock.Object);
+        var username = "Nonexising User";
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => repository.GetUserByUsername(username, CancellationToken.None));
@@ -173,13 +177,13 @@ public class UsersRepositoryTests
     public async Task GetUserByApiKey_ShouldReturnUser_WhenUserExists()
     {
         // Arrange
-        var username = "testuser";
-        var password = "testpassword";
-        var apiKey = "testkey";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+        var username = "Test User";
+        var password = "Test Password";
+        var apiKey = "Test Key";
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, _loggerMock.Object);
         var user = new User(username, passwordHash, passwordSalt, apiKey);
         var context = CreateInMemoryDbContext(new List<User> { user });
-        var repository = new UsersRepository(context);
+        var repository = new UsersRepository(context, _loggerMock.Object);
 
         // Act
         var result = await repository.GetUserByApiKey(apiKey, CancellationToken.None);
@@ -194,8 +198,8 @@ public class UsersRepositoryTests
     {
         // Arrange
         var context = CreateInMemoryDbContext();
-        var repository = new UsersRepository(context);
-        var apiKey = "nonexistingkey";
+        var repository = new UsersRepository(context, _loggerMock.Object);
+        var apiKey = "Noneexisting Key";
 
         // Act & Assert
         await Assert.ThrowsAsync<NotFoundException>(() => repository.GetUserByApiKey(apiKey, CancellationToken.None));
@@ -206,17 +210,17 @@ public class UsersRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var oldUsername = "olduser";
-        var oldPassword = "oldpassword";
-        var oldApiKey = "oldkey";
-        var (oldPasswordHash, oldPasswordSalt) = PasswordHashHelper.HashPassword(oldPassword);
+        var oldUsername = "Old User";
+        var oldPassword = "Old Password";
+        var oldApiKey = "Old Key";
+        var (oldPasswordHash, oldPasswordSalt) = PasswordHashHelper.HashPassword(oldPassword, _loggerMock.Object);
         var existingUser = new User(oldUsername, oldPasswordHash, oldPasswordSalt, oldApiKey) { Id = userId };
         var context = CreateInMemoryDbContext(new List<User> { existingUser });
-        var repository = new UsersRepository(context);
-        var newUsername = "newuser";
-        var newPassword = "newpassword";
-        var newApiKey = "newkey";
-        var (newPasswordHash, newPasswordSalt) = PasswordHashHelper.HashPassword(newPassword);
+        var repository = new UsersRepository(context, _loggerMock.Object);
+        var newUsername = "New User";
+        var newPassword = "New Password";
+        var newApiKey = "New Key";
+        var (newPasswordHash, newPasswordSalt) = PasswordHashHelper.HashPassword(newPassword, _loggerMock.Object);
 
         // Act
         var userToUpdate = await context.Users.FindAsync(userId);
@@ -242,13 +246,13 @@ public class UsersRepositoryTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var username = "todelete";
-        var password = "testpassword";
-        var apiKey = "key";
-        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password);
+        var username = "To Delete";
+        var password = "Test Password";
+        var apiKey = "Key";
+        var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, _loggerMock.Object);
         var userToDelete = new User(username, passwordHash, passwordSalt, apiKey) { Id = userId };
         var context = CreateInMemoryDbContext(new List<User> { userToDelete });
-        var repository = new UsersRepository(context);
+        var repository = new UsersRepository(context, _loggerMock.Object);
 
         // Act
         await repository.DeleteUser(userToDelete, CancellationToken.None);
