@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Stats;
 using Wallet.Server.Domain.Interfaces.Services;
@@ -12,7 +13,12 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Authorize]
 [ApiController]
 [Route("api/v1/stats")]
-public class StatsController(IStatsService statsService, ILogger<StatsController> logger) : ControllerBase
+public class StatsController(
+    IStatsService statsService,
+    ILogger<StatsController> logger,
+    IValidator<GetExcelRequest> getExcelRequestValidator,
+    IValidator<GetLineChartDataRequest> getLineChartDataRequestValidator,
+    IValidator<GetPieChartRequest> getPieChartRequestValidator) : ControllerBase
 {
     /// <summary>
     /// Получает Excel файл с транзакциями
@@ -26,6 +32,14 @@ public class StatsController(IStatsService statsService, ILogger<StatsController
     {
         logger.LogInformation(
             $"Начало запроса на получение Excel файла с транзакциями. UserId: {request.UserId}, Period: {request.Period}.");
+        var validationResult = await getExcelRequestValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при запросе Excel файла. UserId: {request.UserId}, Period: {request.Period}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         var excelFileBytes = await statsService.GenerateExcelFile(request.UserId, request.Period, cancellationToken);
         string fileName = $"Transactions_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
         logger.LogInformation(
@@ -46,6 +60,14 @@ public class StatsController(IStatsService statsService, ILogger<StatsController
     {
         logger.LogInformation(
             $"Начало запроса на получение данных для линейного графика. UserId: {request.UserId}, Period: {request.Period}.");
+        var validationResult = await getLineChartDataRequestValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при запросе данных для линейного графика. UserId: {request.UserId}, Period: {request.Period}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         var result = await statsService.GetLineChartData(request.UserId, request.Period, cancellationToken);
         logger.LogInformation(
             $"Запрос на получение данных для линейного графика завершен. UserId: {request.UserId}, Period: {request.Period}.");
@@ -63,10 +85,20 @@ public class StatsController(IStatsService statsService, ILogger<StatsController
     public async Task<IActionResult> GetPieChartData([FromBody] GetPieChartRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на получение данных для кругового графика. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}.");
+        logger.LogInformation(
+            $"Начало запроса на получение данных для кругового графика. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}.");
+        var validationResult = await getPieChartRequestValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при запросе данных для кругового графика. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         var data = await statsService.GetPieChartData(request.UserId, request.type, request.Period,
             cancellationToken);
-        logger.LogInformation($"Запрос на получение данных для кругового графика завершен. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}.");
+        logger.LogInformation(
+            $"Запрос на получение данных для кругового графика завершен. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}.");
         return Ok(data);
     }
 }

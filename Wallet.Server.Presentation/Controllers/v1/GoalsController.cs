@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Goals;
@@ -12,7 +13,12 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Authorize]
 [ApiController]
 [Route("/api/v1/goals")]
-public class GoalsController(IGoalsService goalsService, ILogger<GoalsController> logger) : ControllerBase
+public class GoalsController(
+    IGoalsService goalsService,
+    ILogger<GoalsController> logger,
+    IValidator<AddGoalRequest> addGoalValidator,
+    IValidator<AddSumToGoalRequest> addSumToGoalValidator,
+    IValidator<UpdateGoalRequest> updateGoalValidator) : ControllerBase
 {
     /// <summary>
     /// Добавляет новую цель для пользователя.
@@ -23,7 +29,16 @@ public class GoalsController(IGoalsService goalsService, ILogger<GoalsController
     [HttpPost("AddGoal")]
     public async Task<IActionResult> AddGoal([FromBody] AddGoalRequest request, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на добавление цели. UserId: {request.UserId}, Name: {request.Name}, TargetSum: {request.TargetSum}, Deadline: {request.Deadline}.");
+        logger.LogInformation(
+            $"Начало запроса на добавление цели. UserId: {request.UserId}, Name: {request.Name}, TargetSum: {request.TargetSum}, Deadline: {request.Deadline}.");
+        var validationResult = await addGoalValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при добавлении цели. UserId: {request.UserId}, Name: {request.Name}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         await goalsService.AddGoal(request.UserId, request.Name, request.TargetSum, request.Deadline,
             cancellationToken);
         logger.LogInformation($"Запрос на добавление цели завершен. UserId: {request.UserId}, Name: {request.Name}.");
@@ -40,9 +55,19 @@ public class GoalsController(IGoalsService goalsService, ILogger<GoalsController
     public async Task<IActionResult> AddSumToGoal([FromBody] AddSumToGoalRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на добавление суммы к цели. GoalId: {request.GoalId}, Sum: {request.Sum}.");
+        logger.LogInformation(
+            $"Начало запроса на добавление суммы к цели. GoalId: {request.GoalId}, Sum: {request.Sum}.");
+        var validationResult = await addSumToGoalValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при добавлении суммы к цели. GoalId: {request.GoalId}, Sum: {request.Sum}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         await goalsService.AddSumToGoal(request.GoalId, request.Sum, cancellationToken);
-        logger.LogInformation($"Запрос на добавление суммы к цели завершен. GoalId: {request.GoalId}, Sum: {request.Sum}.");
+        logger.LogInformation(
+            $"Запрос на добавление суммы к цели завершен. GoalId: {request.GoalId}, Sum: {request.Sum}.");
         return Ok();
     }
 
@@ -58,7 +83,8 @@ public class GoalsController(IGoalsService goalsService, ILogger<GoalsController
     {
         logger.LogInformation($"Начало запроса на получение целей пользователя. UserId: {request.UserId}.");
         var result = await goalsService.GetGoalsByUserId(request.UserId, cancellationToken);
-        logger.LogInformation($"Запрос на получение целей пользователя завершен. UserId: {request.UserId}. Количество целей: {result.Count}.");
+        logger.LogInformation(
+            $"Запрос на получение целей пользователя завершен. UserId: {request.UserId}. Количество целей: {result.Count}.");
         return Ok(result);
     }
 
@@ -87,7 +113,16 @@ public class GoalsController(IGoalsService goalsService, ILogger<GoalsController
     public async Task<IActionResult> UpdateGoal([FromBody] UpdateGoalRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на обновление цели. GoalId: {request.GoalId}, Name: {request.Name}, TargetSum: {request.TargetSum}, Deadline: {request.Deadline}.");
+        logger.LogInformation(
+            $"Начало запроса на обновление цели. GoalId: {request.GoalId}, Name: {request.Name}, TargetSum: {request.TargetSum}, Deadline: {request.Deadline}.");
+        var validationResult = await updateGoalValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при обновлении цели. GoalId: {request.GoalId}, Name: {request.Name}, TargetSum: {request.TargetSum}, Deadline: {request.Deadline}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         await goalsService.UpdateGoal(request.GoalId, request.Name, request.TargetSum, request.Deadline,
             cancellationToken);
         logger.LogInformation($"Запрос на обновление цели завершен. GoalId: {request.GoalId}.");

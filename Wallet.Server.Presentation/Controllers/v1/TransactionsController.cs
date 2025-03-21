@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Transactions;
@@ -12,7 +13,11 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Authorize]
 [ApiController]
 [Route("/api/v1/transactions")]
-public class TransactionsController(ITransactionsService transactionsService, ILogger<TransactionsController> logger) : ControllerBase
+public class TransactionsController(
+    ITransactionsService transactionsService,
+    ILogger<TransactionsController> logger,
+    IValidator<AddTransactionRequest> addTransactionValidator,
+    IValidator<UpdateTransactionRequest> updateTransactionValidator) : ControllerBase
 {
     /// <summary>
     /// Добавляет новую транзакцию.
@@ -24,10 +29,20 @@ public class TransactionsController(ITransactionsService transactionsService, IL
     public async Task<IActionResult> AddTransaction([FromBody] AddTransactionRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на добавление транзакции. UserId: {request.UserId}, CategoryId: {request.CategoryId}, Type: {request.Type}, Amount: {request.Amount}, Date: {request.Date}.");
+        logger.LogInformation(
+            $"Начало запроса на добавление транзакции. UserId: {request.UserId}, CategoryId: {request.CategoryId}, Type: {request.Type}, Amount: {request.Amount}, Date: {request.Date}.");
+        var validationResult = await addTransactionValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при добавлении транзакции. UserId: {request.UserId}, CategoryId: {request.CategoryId}, Type: {request.Type}, Amount: {request.Amount}, Date: {request.Date}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         await transactionsService.AddTransaction(request.UserId, request.CategoryId, request.Name, request.Amount,
             request.Date, request.Type, cancellationToken);
-        logger.LogInformation($"Запрос на добавление транзакции завершен. UserId: {request.UserId}, CategoryId: {request.CategoryId}.");
+        logger.LogInformation(
+            $"Запрос на добавление транзакции завершен. UserId: {request.UserId}, CategoryId: {request.CategoryId}.");
         return Ok();
     }
 
@@ -41,9 +56,11 @@ public class TransactionsController(ITransactionsService transactionsService, IL
     public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на получение транзакций по типу. UserId: {request.UserId}, Type: {request.Type}.");
+        logger.LogInformation(
+            $"Начало запроса на получение транзакций по типу. UserId: {request.UserId}, Type: {request.Type}.");
         var result = await transactionsService.GetTransactionsByType(request.UserId, request.Type, cancellationToken);
-        logger.LogInformation($"Запрос на получение транзакций по типу завершен. UserId: {request.UserId}, Type: {request.Type}. Количество транзакций: {result.Count}.");
+        logger.LogInformation(
+            $"Запрос на получение транзакций по типу завершен. UserId: {request.UserId}, Type: {request.Type}. Количество транзакций: {result.Count}.");
         return Ok(result);
     }
 
@@ -57,9 +74,11 @@ public class TransactionsController(ITransactionsService transactionsService, IL
     public async Task<IActionResult> GetTransactionsByCategory([FromBody] GetTransactionsByCategoryRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на получение транзакций по категории. CategoryId: {request.CategoryId}.");
+        logger.LogInformation(
+            $"Начало запроса на получение транзакций по категории. CategoryId: {request.CategoryId}.");
         var result = await transactionsService.GetTransactionsByCategory(request.CategoryId, cancellationToken);
-        logger.LogInformation($"Запрос на получение транзакций по категории завершен. CategoryId: {request.CategoryId}. Количество транзакций: {result.Count}.");
+        logger.LogInformation(
+            $"Запрос на получение транзакций по категории завершен. CategoryId: {request.CategoryId}. Количество транзакций: {result.Count}.");
         return Ok(result);
     }
 
@@ -89,6 +108,14 @@ public class TransactionsController(ITransactionsService transactionsService, IL
         CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на обновление транзакции. TransactionId: {request.TransactionId}.");
+        var validationResult = await updateTransactionValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при обновлении транзакции. TransactionId: {request.TransactionId}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         await transactionsService.UpdateTransaction(request.TransactionId, request.CategoryId, request.Name,
             request.Amount, request.Date,
             cancellationToken);

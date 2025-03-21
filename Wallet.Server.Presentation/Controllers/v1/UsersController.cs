@@ -1,7 +1,7 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Users;
-using Wallet.Server.Application.Validators;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
@@ -12,7 +12,13 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 /// <param name="usersService">Сервис пользователей</param>
 [ApiController]
 [Route("/api/v1/users")]
-public class UsersController(IUsersService usersService, ILogger<UsersController> logger) : ControllerBase
+public class UsersController(
+    IUsersService usersService,
+    ILogger<UsersController> logger,
+    IValidator<AuthRequest> authValidator,
+    IValidator<GetUserByUsernameRequest> getUserByUsernameValidator,
+    IValidator<GetApiKeyRequest> getApiKeyRequestValidator,
+    IValidator<UpdateApiKeyRequest> updateApiKeyRequestValidator) : ControllerBase
 {
     /// <summary>
     /// Регистрация нового пользователя
@@ -24,14 +30,17 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     public async Task<IActionResult> SignUp([FromBody] AuthRequest request, CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на регистрацию. Username: {request.Username}.");
-        var validation = await new AuthValidator().ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
+        var validationResult = await authValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
         {
-            logger.LogWarning($"Ошибка валидации при регистрации. Username: {request.Username}. Ошибки: {string.Join(", ", validation.Errors)}");
-            return BadRequest(validation.Errors);
+            logger.LogWarning(
+                $"Ошибка валидации при регистрации. Username: {request.Username}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
         }
+
         var result = await usersService.SignUp(request.Username, request.Password, cancellationToken);
-        logger.LogInformation($"Запрос на регистрацию завершен. Username: {request.Username}, UserId: {result.UserId}.");
+        logger.LogInformation(
+            $"Запрос на регистрацию завершен. Username: {request.Username}, UserId: {result.UserId}.");
         return Ok(result);
     }
 
@@ -45,14 +54,17 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     public async Task<IActionResult> SignIn([FromBody] AuthRequest request, CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на авторизацию. Username: {request.Username}.");
-        var validation = await new AuthValidator().ValidateAsync(request, cancellationToken);
-        if (!validation.IsValid)
+        var validationResult = await authValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
         {
-            logger.LogWarning($"Ошибка валидации при авторизации. Username: {request.Username}. Ошибки: {string.Join(", ", validation.Errors)}");
-            return BadRequest(validation.Errors);
+            logger.LogWarning(
+                $"Ошибка валидации при авторизации. Username: {request.Username}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
         }
+
         var result = await usersService.SignIn(request.Username, request.Password, cancellationToken);
-        logger.LogInformation($"Запрос на авторизацию завершен. Username: {request.Username}, UserId: {result.UserId}.");
+        logger.LogInformation(
+            $"Запрос на авторизацию завершен. Username: {request.Username}, UserId: {result.UserId}.");
         return Ok(result);
     }
 
@@ -84,8 +96,17 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
         CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на получение пользователя по имени. Username: {request.Username}.");
+        var validationResult = await getUserByUsernameValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при получении пользователя по имени. Username: {request.Username}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         var result = await usersService.GetUserByUsername(request.Username, cancellationToken);
-        logger.LogInformation($"Запрос на получение пользователя по имени завершен. Username: {request.Username}, UserId: {result.Id}.");
+        logger.LogInformation(
+            $"Запрос на получение пользователя по имени завершен. Username: {request.Username}, UserId: {result.Id}.");
         return Ok(result);
     }
 
@@ -149,6 +170,14 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
     public async Task<IActionResult> GetApiKey([FromBody] GetApiKeyRequest request, CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на получение API ключа. UserId: {request.UserId}.");
+        var validationResult = await getApiKeyRequestValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при получении API ключа. UserId: {request.UserId}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         var result = await usersService.GetApiKey(request.UserId, cancellationToken);
         logger.LogInformation($"Запрос на получение API ключа завершен. UserId: {request.UserId}.");
         return Ok(result);
@@ -166,24 +195,16 @@ public class UsersController(IUsersService usersService, ILogger<UsersController
         CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на обновление API ключа. UserId: {request.UserId}.");
+        var validationResult = await updateApiKeyRequestValidator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при обновлении API ключа. UserId: {request.UserId}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
+
         await usersService.UpdateApiKey(request.UserId, cancellationToken);
         logger.LogInformation($"Запрос на обновление API ключа завершен. UserId: {request.UserId}.");
-        return Ok();
-    }
-
-    /// <summary>
-    /// Валидация API ключа для привязки telegram
-    /// </summary>
-    /// <param name="request">Данные для валидации api ключа. Содержит ApiKey и TelegramUserId</param>
-    /// <param name="cancellationToken">Токен отмены.</param>
-    /// <returns>Статус операции</returns>
-    [HttpPost("ValidateApiKey")]
-    public async Task<IActionResult> ValidateApiKey([FromBody] ValidateApiKeyRequest request,
-        CancellationToken cancellationToken)
-    {
-        logger.LogInformation($"Начало запроса на валидацию API ключа.");
-        await usersService.ValidateApiKey(request.ApiKey, request.TelegramUserId, cancellationToken);
-        logger.LogInformation($"Запрос на валидацию API ключа завершен. TelegramUserId: {request.TelegramUserId}.");
         return Ok();
     }
 }
