@@ -17,7 +17,8 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус операции</returns>
     [HttpPost("AddTransaction")]
-    public async Task<IActionResult> AddTransaction([FromBody] AddTransactionRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddTransaction([FromBody] AddTransactionRequest request,
+        CancellationToken cancellationToken)
     {
         await transactionsService.AddTransaction(request.UserId, request.CategoryId, request.Name, request.Amount,
             request.Date, request.Type, cancellationToken);
@@ -32,7 +33,8 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Список транзакций</returns>
     [HttpPost("GetTransactionsByType")]
-    public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await transactionsService.GetTransactionsByType(request.UserId, request.Type, cancellationToken));
     }
@@ -44,11 +46,12 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Список транзакций</returns>
     [HttpPost("GetTransactionsByCategory")]
-    public async Task<IActionResult> GetTransactionsByCategory([FromBody] GetTransactionsByCategoryRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetTransactionsByCategory([FromBody] GetTransactionsByCategoryRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await transactionsService.GetTransactionsByCategory(request.CategoryId, cancellationToken));
     }
-    
+
     /// <summary>
     /// Получает транзакцию по идентификатору.
     /// </summary>
@@ -60,7 +63,7 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     {
         return Ok(await transactionsService.GetTransactionById(transactionId, cancellationToken));
     }
-    
+
     /// <summary>
     /// Обновляет существующую транзакцию.
     /// </summary>
@@ -68,14 +71,16 @@ public class TransactionsController(ITransactionsService transactionsService) : 
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус операции</returns>
     [HttpPut]
-    public async Task<IActionResult> UpdateTransaction([FromBody] UpdateTransactionRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateTransaction([FromBody] UpdateTransactionRequest request,
+        CancellationToken cancellationToken)
     {
-        await transactionsService.UpdateTransaction(request.TransactionId, request.CategoryId, request.Name, request.Amount, request.Date,
+        await transactionsService.UpdateTransaction(request.TransactionId, request.CategoryId, request.Name,
+            request.Amount, request.Date,
             cancellationToken);
 
         return Ok();
     }
-    
+
     /// <summary>
     /// Удаляет транзакцию по идентификатору.
     /// </summary>

@@ -150,7 +150,8 @@ public class UsersController(IUsersService usersService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус операции</returns>
     [HttpPost("ValidateApiKey")]
-    public async Task<IActionResult> ValidateApiKey([FromBody] ValidateApiKeyRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ValidateApiKey([FromBody] ValidateApiKeyRequest request,
+        CancellationToken cancellationToken)
     {
         await usersService.ValidateApiKey(request.ApiKey, request.TelegramUserId, cancellationToken);
         return Ok();

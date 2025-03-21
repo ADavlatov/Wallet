@@ -17,7 +17,8 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус операции</returns>
     [HttpPost("AddCategory")]
-    public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest request,
+        CancellationToken cancellationToken)
     {
         await categoriesService.AddCategory(request.UserId, request.Name, request.Type, cancellationToken);
         return Ok();
@@ -30,7 +31,8 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Список категорий</returns>
     [HttpPost("GetCategoriesByType")]
-    public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoriesByType(request.UserId, request.Type, cancellationToken));
     }
@@ -42,7 +44,8 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Список категорий</returns>
     [HttpPost("GetCategoriesByUser")]
-    public async Task<IActionResult> GetCategoriesByUser([FromBody] GetCategoriesByUserRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetCategoriesByUser([FromBody] GetCategoriesByUserRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoriesByUser(request.UserId, cancellationToken));
     }
@@ -54,7 +57,8 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Категория</returns>
     [HttpPost("GetCategoryByName")]
-    public async Task<IActionResult> GetCategoryByName([FromBody] GetCategoryByNameRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetCategoryByName([FromBody] GetCategoryByNameRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken));
     }
@@ -78,7 +82,8 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус операции</returns>
     [HttpPut]
-    public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request,
+        CancellationToken cancellationToken)
     {
         await categoriesService.UpdateCategory(request.CategoryId, request.Name, cancellationToken);
         return Ok();

@@ -4,7 +4,6 @@ namespace Wallet.Server.Infrastructure.Helpers;
 
 public static class PasswordHashHelper
 {
-
     private const int IterationCount = 10000;
     private const int SaltLength = 32;
 
@@ -30,7 +29,7 @@ public static class PasswordHashHelper
 
         var hashBytes = rfc2898DeriveBytes.GetBytes(20);
         var saltBytes = salt ?? rfc2898DeriveBytes.Salt;
-        
+
         return (hashBytes, saltBytes);
     }
 }

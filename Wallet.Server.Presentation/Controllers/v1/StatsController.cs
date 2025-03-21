@@ -10,7 +10,6 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("api/v1/stats")]
 public class StatsController(IStatsService statsService) : ControllerBase
 {
-   
     /// <summary>
     /// Получает Excel файл с транзакциями
     /// </summary>
@@ -18,7 +17,8 @@ public class StatsController(IStatsService statsService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Файл Excel в формате xlsx</returns>
     [HttpPost("GetExcelFile")]
-    public async Task<IActionResult> GetExcelFile([FromBody] GetExcelRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetExcelFile([FromBody] GetExcelRequest request,
+        CancellationToken cancellationToken)
     {
         var excelFileBytes = await statsService.GenerateExcelFile(request.UserId, request.Period, cancellationToken);
         string fileName = $"Transactions_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
@@ -26,7 +26,7 @@ public class StatsController(IStatsService statsService) : ControllerBase
         return File(excelFileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
-    
+
     /// <summary>
     /// Получает данные для построения линейного графика
     /// </summary>
@@ -40,7 +40,7 @@ public class StatsController(IStatsService statsService) : ControllerBase
         return Ok(await statsService.GetLineChartData(request.UserId, request.Period, cancellationToken));
     }
 
-    
+
     /// <summary>
     /// Получает данные для построения кругового графика
     /// </summary>

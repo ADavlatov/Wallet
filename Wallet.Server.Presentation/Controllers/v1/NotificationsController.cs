@@ -9,7 +9,6 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("/api/v1/notifications")]
 public class NotificationsController(INotificationsService notificationsService) : ControllerBase
 {
-
     /// <summary>
     /// Добавляет новое уведомление.
     /// </summary>

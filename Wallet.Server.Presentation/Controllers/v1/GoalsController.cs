@@ -19,7 +19,8 @@ public class GoalsController(IGoalsService goalsService) : ControllerBase
     [HttpPost("AddGoal")]
     public async Task<IActionResult> AddGoal([FromBody] AddGoalRequest request, CancellationToken cancellationToken)
     {
-        await goalsService.AddGoal(request.UserId, request.Name, request.TargetSum, request.Deadline, cancellationToken);
+        await goalsService.AddGoal(request.UserId, request.Name, request.TargetSum, request.Deadline,
+            cancellationToken);
         return Ok();
     }
 
@@ -30,7 +31,8 @@ public class GoalsController(IGoalsService goalsService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус операции</returns>
     [HttpPost("AddSumToGoal")]
-    public async Task<IActionResult> AddSumToGoal([FromBody] AddSumToGoalRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddSumToGoal([FromBody] AddSumToGoalRequest request,
+        CancellationToken cancellationToken)
     {
         await goalsService.AddSumToGoal(request.GoalId, request.Sum, cancellationToken);
         return Ok();
@@ -43,7 +45,8 @@ public class GoalsController(IGoalsService goalsService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Список целей</returns>
     [HttpPost("GetGoals")]
-    public async Task<IActionResult> GetGoalsByUser([FromBody] GetGoalsRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetGoalsByUser([FromBody] GetGoalsRequest request,
+        CancellationToken cancellationToken)
     {
         return Ok(await goalsService.GetGoalsByUserId(request.UserId, cancellationToken));
     }
@@ -67,9 +70,11 @@ public class GoalsController(IGoalsService goalsService) : ControllerBase
     /// <param name="cancellationToken">Токен отмены.</param>
     /// <returns>Статус операции</returns>
     [HttpPut]
-    public async Task<IActionResult> UpdateGoal([FromBody] UpdateGoalRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateGoal([FromBody] UpdateGoalRequest request,
+        CancellationToken cancellationToken)
     {
-        await goalsService.UpdateGoal(request.GoalId, request.Name, request.TargetSum, request.Deadline, cancellationToken);
+        await goalsService.UpdateGoal(request.GoalId, request.Name, request.TargetSum, request.Deadline,
+            cancellationToken);
         return Ok();
     }
 
