@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using Microsoft.Extensions.Logging;
 using Wallet.Server.Domain.DTOs;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Interfaces.Repositories;
@@ -7,11 +8,12 @@ using Wallet.Server.Infrastructure.Helpers;
 
 namespace Wallet.Server.Application.Services;
 
-public class StatsService(ITransactionsRepository transactionsRepository) : IStatsService
+public class StatsService(ITransactionsRepository transactionsRepository, ILogger<StatsService> logger) : IStatsService
 {
     public async Task<byte[]> GenerateExcelFile(Guid userId, string period, CancellationToken cancellationToken)
     {
-        var periodDates = PeriodHelper.GetPeriodDates(period);
+        logger.LogInformation($"Запрос на генерацию Excel файла. UserId: {userId}, Period: {period}");
+        var periodDates = PeriodHelper.GetPeriodDates(period, logger);
         var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate, 
                 periodDates.EndDate, cancellationToken); 
 
@@ -82,7 +84,8 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
 
     public async Task<LineChartDto> GetLineChartData(Guid userId, string period, CancellationToken cancellationToken)
     {
-        var periodDates = PeriodHelper.GetPeriodDates(period);
+        logger.LogInformation($"Запрос на получение данных для линейного графика. UserId: {userId}, Period: {period}");
+        var periodDates = PeriodHelper.GetPeriodDates(period, logger);
         var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate,
             periodDates.EndDate, cancellationToken);
 
@@ -107,7 +110,8 @@ public class StatsService(ITransactionsRepository transactionsRepository) : ISta
     public async Task<Dictionary<string, decimal>> GetPieChartData(Guid userId, TransactionTypes type, string period,
         CancellationToken cancellationToken)
     {
-        var periodDates = PeriodHelper.GetPeriodDates(period);
+        logger.LogInformation($"Запрос на получение данных для кругового графика. UserId: {userId}, Type: {type}, Period: {period}");
+        var periodDates = PeriodHelper.GetPeriodDates(period, logger);
         var expenses = await transactionsRepository.GetTransactionsByTypeAndPeriod(userId, type, periodDates.StartDate,
             periodDates.EndDate, cancellationToken);
 

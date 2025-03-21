@@ -1,14 +1,23 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Categories;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging; 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+/// <summary>
+/// Контроллер для работы с категориями
+/// </summary>
+/// <param name="categoriesService">Сервис категорий</param>
 [Authorize]
 [ApiController]
 [Route("/api/v1/categories")]
-public class CategoriesController(ICategoriesService categoriesService) : ControllerBase
+public class CategoriesController(ICategoriesService categoriesService, ILogger<CategoriesController> logger) : ControllerBase
 {
     /// <summary>
     /// Добавление новой категории
@@ -20,7 +29,9 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest request,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Начало запроса на добавление категории. Пользователь: {request.UserId}, название: {request.Name}, тип: {request.Type}.");
         await categoriesService.AddCategory(request.UserId, request.Name, request.Type, cancellationToken);
+        logger.LogInformation($"Запрос на добавление категории завершен. Пользователь: {request.UserId}, название: {request.Name}.");
         return Ok();
     }
 
@@ -34,7 +45,10 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request,
         CancellationToken cancellationToken)
     {
-        return Ok(await categoriesService.GetCategoriesByType(request.UserId, request.Type, cancellationToken));
+        logger.LogInformation($"Начало запроса на получение категорий по типу. Пользователь: {request.UserId}, тип: {request.Type}.");
+        var result = await categoriesService.GetCategoriesByType(request.UserId, request.Type, cancellationToken);
+        logger.LogInformation($"Запрос на получение категорий по типу завершен. Пользователь: {request.UserId}, тип: {request.Type}. Получено категорий: {result.Count}.");
+        return Ok(result);
     }
 
     /// <summary>
@@ -47,7 +61,10 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     public async Task<IActionResult> GetCategoriesByUser([FromBody] GetCategoriesByUserRequest request,
         CancellationToken cancellationToken)
     {
-        return Ok(await categoriesService.GetCategoriesByUser(request.UserId, cancellationToken));
+        logger.LogInformation($"Начало запроса на получение категорий для пользователя. Пользователь: {request.UserId}.");
+        var result = await categoriesService.GetCategoriesByUser(request.UserId, cancellationToken);
+        logger.LogInformation($"Запрос на получение категорий для пользователя завершен. Пользователь: {request.UserId}. Получено категорий: {result.Count}.");
+        return Ok(result);
     }
 
     /// <summary>
@@ -60,7 +77,10 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     public async Task<IActionResult> GetCategoryByName([FromBody] GetCategoryByNameRequest request,
         CancellationToken cancellationToken)
     {
-        return Ok(await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken));
+        logger.LogInformation($"Начало запроса на получение категории по названию. Пользователь: {request.UserId}, название: {request.Name}.");
+        var result = await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken);
+        logger.LogInformation($"Запрос на получение категории по названию завершен. Пользователь: {request.UserId}, название: {request.Name}.");
+        return Ok(result);
     }
 
     /// <summary>
@@ -72,7 +92,10 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     [HttpGet("{categoryId}")]
     public async Task<IActionResult> GetCategoryById(Guid categoryId, CancellationToken cancellationToken)
     {
-        return Ok(await categoriesService.GetCategoryById(categoryId, cancellationToken));
+        logger.LogInformation($"Начало запроса на получение категории по идентификатору. ID: {categoryId}.");
+        var result = await categoriesService.GetCategoryById(categoryId, cancellationToken);
+        logger.LogInformation($"Запрос на получение категории по идентификатору завершен. ID: {categoryId}.");
+        return Ok(result);
     }
 
     /// <summary>
@@ -85,7 +108,9 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Начало запроса на обновление категории. ID: {request.CategoryId}, новое название: {request.Name}.");
         await categoriesService.UpdateCategory(request.CategoryId, request.Name, cancellationToken);
+        logger.LogInformation($"Запрос на обновление категории завершен. ID: {request.CategoryId}, новое название: {request.Name}.");
         return Ok();
     }
 
@@ -98,7 +123,9 @@ public class CategoriesController(ICategoriesService categoriesService) : Contro
     [HttpDelete("{categoryId}")]
     public async Task<IActionResult> DeleteCategory(Guid categoryId, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Начало запроса на удаление категории. ID: {categoryId}.");
         await categoriesService.DeleteCategory(categoryId, cancellationToken);
+        logger.LogInformation($"Запрос на удаление категории завершен. ID: {categoryId}.");
         return Ok();
     }
 }

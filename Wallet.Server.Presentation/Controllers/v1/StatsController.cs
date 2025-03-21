@@ -5,10 +5,14 @@ using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
+/// <summary>
+/// Контроллер для работы со статистикой
+/// </summary>
+/// <param name="statsService">Сервис статистики</param>
 [Authorize]
 [ApiController]
 [Route("api/v1/stats")]
-public class StatsController(IStatsService statsService) : ControllerBase
+public class StatsController(IStatsService statsService, ILogger<StatsController> logger) : ControllerBase
 {
     /// <summary>
     /// Получает Excel файл с транзакциями
@@ -20,9 +24,12 @@ public class StatsController(IStatsService statsService) : ControllerBase
     public async Task<IActionResult> GetExcelFile([FromBody] GetExcelRequest request,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation(
+            $"Начало запроса на получение Excel файла с транзакциями. UserId: {request.UserId}, Period: {request.Period}.");
         var excelFileBytes = await statsService.GenerateExcelFile(request.UserId, request.Period, cancellationToken);
         string fileName = $"Transactions_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-
+        logger.LogInformation(
+            $"Запрос на получение Excel файла с транзакциями завершен. UserId: {request.UserId}, Period: {request.Period}. Имя файла: {fileName}.");
         return File(excelFileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
@@ -37,7 +44,12 @@ public class StatsController(IStatsService statsService) : ControllerBase
     public async Task<IActionResult> GetLineChartData([FromBody] GetLineChartDataRequest request,
         CancellationToken cancellationToken)
     {
-        return Ok(await statsService.GetLineChartData(request.UserId, request.Period, cancellationToken));
+        logger.LogInformation(
+            $"Начало запроса на получение данных для линейного графика. UserId: {request.UserId}, Period: {request.Period}.");
+        var result = await statsService.GetLineChartData(request.UserId, request.Period, cancellationToken);
+        logger.LogInformation(
+            $"Запрос на получение данных для линейного графика завершен. UserId: {request.UserId}, Period: {request.Period}.");
+        return Ok(result);
     }
 
 
@@ -51,15 +63,10 @@ public class StatsController(IStatsService statsService) : ControllerBase
     public async Task<IActionResult> GetPieChartData([FromBody] GetPieChartRequest request,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var data = await statsService.GetPieChartData(request.UserId, request.type, request.Period,
-                cancellationToken);
-            return Ok(data);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        logger.LogInformation($"Начало запроса на получение данных для кругового графика. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}.");
+        var data = await statsService.GetPieChartData(request.UserId, request.type, request.Period,
+            cancellationToken);
+        logger.LogInformation($"Запрос на получение данных для кругового графика завершен. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}.");
+        return Ok(data);
     }
 }

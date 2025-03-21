@@ -5,9 +5,13 @@ using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
 
+/// <summary>
+/// Контроллер для работы с уведомлениями
+/// </summary>
+/// <param name="notificationsService">Сервис уведомлений</param>
 [ApiController]
 [Route("/api/v1/notifications")]
-public class NotificationsController(INotificationsService notificationsService) : ControllerBase
+public class NotificationsController(INotificationsService notificationsService, ILogger<NotificationsController> logger) : ControllerBase
 {
     /// <summary>
     /// Добавляет новое уведомление.
@@ -20,8 +24,10 @@ public class NotificationsController(INotificationsService notificationsService)
     public async Task<IActionResult> AddNotification([FromBody] AddNotificationRequest request,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Начало запроса на добавление уведомления. UserId: {request.UserId}, Name: {request.Name}.");
         await notificationsService.AddNotification(request.UserId, request.Name, request.Description, request.DateTime,
             cancellationToken);
+        logger.LogInformation($"Запрос на добавление уведомления завершен. UserId: {request.UserId}, Name: {request.Name}.");
         return Ok();
     }
 
@@ -35,7 +41,10 @@ public class NotificationsController(INotificationsService notificationsService)
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetNotifications(Guid userId, CancellationToken cancellationToken)
     {
-        return Ok(await notificationsService.GetNotifications(userId, cancellationToken));
+        logger.LogInformation($"Начало запроса на получение уведомлений пользователя. UserId: {userId}.");
+        var result = await notificationsService.GetNotifications(userId, cancellationToken);
+        logger.LogInformation($"Запрос на получение уведомлений пользователя завершен. UserId: {userId}. Количество уведомлений: {result.Count}.");
+        return Ok(result);
     }
 
     /// <summary>
@@ -49,8 +58,10 @@ public class NotificationsController(INotificationsService notificationsService)
     public async Task<IActionResult> UpdateNotification([FromBody] UpdateNotificationRequest request,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Начало запроса на обновление уведомления. NotificationId: {request.NotificationId}, Name: {request.Name}.");
         await notificationsService.UpdateNotification(request.NotificationId, request.Name, request.Description,
             request.DateTime, cancellationToken);
+        logger.LogInformation($"Запрос на обновление уведомления завершен. NotificationId: {request.NotificationId}.");
         return Ok();
     }
 
@@ -63,7 +74,9 @@ public class NotificationsController(INotificationsService notificationsService)
     [HttpDelete("{notificationId}")]
     public async Task<IActionResult> DeleteNotification(Guid notificationId, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Начало запроса на удаление уведомления. NotificationId: {notificationId}.");
         await notificationsService.DeleteNotification(notificationId, cancellationToken);
+        logger.LogInformation($"Запрос на удаление уведомления завершен. NotificationId: {notificationId}.");
         return Ok();
     }
 }

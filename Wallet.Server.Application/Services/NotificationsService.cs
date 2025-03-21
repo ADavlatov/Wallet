@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Wallet.Server.Application.Models.Notifications;
 using Wallet.Server.Domain.Entities;
@@ -13,12 +14,14 @@ public class NotificationsService(
     INotificationsRepository notificationsRepository,
     IUsersRepository usersRepository,
     HttpClient httpClient,
-    IOptions<UrlOptions> urlOptions)
+    IOptions<UrlOptions> urlOptions,
+    ILogger<NotificationsService> logger)
     : INotificationsService
 {
     public async Task AddNotification(Guid userId, string name, string description, DateTime dateTime,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Запрос на добавление уведомления. UserId: {userId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         if (user.TelegramUserId == null)
         {
@@ -49,12 +52,14 @@ public class NotificationsService(
 
     public async Task<List<Notification>> GetNotifications(Guid userId, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Запрос на получение уведомлений. UserId: {userId}");
         return await notificationsRepository.GetNotifications(userId, cancellationToken);
     }
 
     public async Task UpdateNotification(Guid notificationId, string? name, string? description, DateTime? dateTime,
         CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Запрос на обновление уведомления. NotificationId: {notificationId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
         var notification = await notificationsRepository.GetNotificationById(notificationId, cancellationToken);
 
         notification.Name = name ?? notification.Name;
@@ -66,6 +71,7 @@ public class NotificationsService(
 
     public async Task DeleteNotification(Guid notificationId, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Запрос на удаление уведомления. NotificationId: {notificationId}");
         var notification = await notificationsRepository.GetNotificationById(notificationId, cancellationToken);
         await notificationsRepository.DeleteNotification(notification, cancellationToken);
     }
