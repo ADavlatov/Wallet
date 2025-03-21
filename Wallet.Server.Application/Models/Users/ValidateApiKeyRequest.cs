@@ -1,3 +1,3 @@
 ﻿namespace Wallet.Server.Application.Models.Users;
 
-public record ValidateApiKeyRequest(string ApiKey, long telegramUserId);
+public record ValidateApiKeyRequest(string ApiKey, long TelegramUserId);

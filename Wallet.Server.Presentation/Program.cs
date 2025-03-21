@@ -91,6 +91,7 @@ app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 app.Run();
 
+//:TODO привести в порядок програм файл
 //:TODO пофиксить обновление пароля
 //:TODO почнинить переключение периодово на странице статистики
 //:TODO выпилить хардкод
