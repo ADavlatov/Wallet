@@ -21,7 +21,8 @@ public class NotificationsService(
     public async Task AddNotification(Guid userId, string name, string description, DateTime dateTime,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на добавление уведомления. UserId: {userId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
+        logger.LogInformation(
+            $"Запрос на добавление уведомления. UserId: {userId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         if (user.TelegramUserId == null)
         {
@@ -59,7 +60,8 @@ public class NotificationsService(
     public async Task UpdateNotification(Guid notificationId, string? name, string? description, DateTime? dateTime,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление уведомления. NotificationId: {notificationId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
+        logger.LogInformation(
+            $"Запрос на обновление уведомления. NotificationId: {notificationId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
         var notification = await notificationsRepository.GetNotificationById(notificationId, cancellationToken);
 
         notification.Name = name ?? notification.Name;

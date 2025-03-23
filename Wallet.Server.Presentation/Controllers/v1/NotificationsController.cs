@@ -76,7 +76,7 @@ public class NotificationsController(
     {
         logger.LogInformation(
             $"Начало запроса на обновление уведомления. NotificationId: {request.NotificationId}, Name: {request.Name}.");
-        
+
         var validationResult = await new UpdateNotificationRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {

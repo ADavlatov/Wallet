@@ -14,8 +14,8 @@ public class StatsService(ITransactionsRepository transactionsRepository, ILogge
     {
         logger.LogInformation($"Запрос на генерацию Excel файла. UserId: {userId}, Period: {period}");
         var periodDates = PeriodHelper.GetPeriodDates(period, logger);
-        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate, 
-                periodDates.EndDate, cancellationToken); 
+        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate,
+            periodDates.EndDate, cancellationToken);
 
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Доходы");
@@ -110,7 +110,8 @@ public class StatsService(ITransactionsRepository transactionsRepository, ILogge
     public async Task<Dictionary<string, decimal>> GetPieChartData(Guid userId, TransactionTypes type, string period,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение данных для кругового графика. UserId: {userId}, Type: {type}, Period: {period}");
+        logger.LogInformation(
+            $"Запрос на получение данных для кругового графика. UserId: {userId}, Type: {type}, Period: {period}");
         var periodDates = PeriodHelper.GetPeriodDates(period, logger);
         var expenses = await transactionsRepository.GetTransactionsByTypeAndPeriod(userId, type, periodDates.StartDate,
             periodDates.EndDate, cancellationToken);

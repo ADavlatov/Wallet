@@ -197,7 +197,16 @@ public class UsersController(
     [HttpPost("ValidateApiKey")]
     public async Task<IActionResult> ValidateApiKey([FromBody] ValidateApiKeyRequest request, CancellationToken cancellationToken)
     {
+        logger.LogInformation($"Начало запроса на валидацию API ключа. ApiKey: {request.ApiKey}, TelegramUserId: {request.TelegramUserId}");
+        var validationResult = await new ValidateApiKeyRequestValidator().ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            logger.LogWarning(
+                $"Ошибка валидации при валидации API ключа. ApiKey: {request.ApiKey}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            return BadRequest(validationResult.Errors);
+        }
         await usersService.ValidateApiKey(request.ApiKey, request.TelegramUserId, cancellationToken);
+        logger.LogInformation($"Запроса на валидацию API ключа завершен. ApiKey: {request.ApiKey}, TelegramUserId: {request.TelegramUserId}");
         return Ok();
     }
 }

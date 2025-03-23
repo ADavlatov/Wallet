@@ -17,12 +17,6 @@ public sealed class WalletContext : DbContext
         Database.EnsureCreated();
     }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        //@TODO заменить на постгрес
-        // optionsBuilder.UseSqlite("Data Source=wallet.db");
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new UserConfiguration());

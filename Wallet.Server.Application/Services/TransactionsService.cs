@@ -15,7 +15,8 @@ public class TransactionsService(
     public async Task AddTransaction(Guid userId, Guid categoryId, string? name, decimal amount, DateOnly date,
         TransactionTypes type, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на добавление транзакции. UserId: {userId}, CategoryId: {categoryId}, Name: {name}, Amount: {amount}, Date: {date}, Type: {type}");
+        logger.LogInformation(
+            $"Запрос на добавление транзакции. UserId: {userId}, CategoryId: {categoryId}, Name: {name}, Amount: {amount}, Date: {date}, Type: {type}");
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
         await transactionsRepository.AddTransaction(
@@ -49,10 +50,12 @@ public class TransactionsService(
         return await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
     }
 
-    public async Task UpdateTransaction(Guid transactionId, Guid? categoryId, string? name, decimal? amount, DateOnly? date,
+    public async Task UpdateTransaction(Guid transactionId, Guid? categoryId, string? name, decimal? amount,
+        DateOnly? date,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление транзакции. TransactionId: {transactionId}, CategoryId: {categoryId}, Name: {name}, Amount: {amount}, Date: {date}");
+        logger.LogInformation(
+            $"Запрос на обновление транзакции. TransactionId: {transactionId}, CategoryId: {categoryId}, Name: {name}, Amount: {amount}, Date: {date}");
         var transaction = await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
 
         if (categoryId is not null)

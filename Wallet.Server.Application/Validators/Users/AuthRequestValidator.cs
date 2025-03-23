@@ -14,7 +14,7 @@ public class AuthRequestValidator : AbstractValidator<AuthRequest>
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Пароль не может быть пустым.")
-            .MinimumLength(8).WithMessage("Пароль должен содержать не менее 8 символов.")
+            .MinimumLength(3).WithMessage("Пароль должен содержать не менее 3 символов.")
             .MaximumLength(256).WithMessage("Пароль не может превышать 256 символов.");
     }
 }

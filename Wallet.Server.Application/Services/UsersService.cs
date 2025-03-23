@@ -12,7 +12,8 @@ using Wallet.Server.Infrastructure.Options;
 
 namespace Wallet.Server.Application.Services;
 
-public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions> options, ILogger<UsersService> logger) : IUsersService
+public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions> options, ILogger<UsersService> logger)
+    : IUsersService
 {
     public async Task<AuthDto> SignUp(string username, string password, CancellationToken cancellationToken)
     {
@@ -39,7 +40,7 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
 
     public async Task<AuthDto> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление токенов.");
+        logger.LogInformation("Запрос на обновление токенов.");
         var token = await new JwtSecurityTokenHandler().ValidateTokenAsync(refreshToken,
             new TokenValidationParameters
             {
@@ -121,7 +122,8 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
 
     public async Task ValidateApiKey(string apiKey, long telegramUserId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на валидацию API ключа для Telegram. ApiKey: {apiKey}, TelegramUserId: {telegramUserId}");
+        logger.LogInformation(
+            $"Запрос на валидацию API ключа для Telegram. ApiKey: {apiKey}, TelegramUserId: {telegramUserId}");
         var user = await usersRepository.GetUserByApiKey(apiKey, cancellationToken);
         user.TelegramUserId = telegramUserId;
         await usersRepository.UpdateUser(user, cancellationToken);

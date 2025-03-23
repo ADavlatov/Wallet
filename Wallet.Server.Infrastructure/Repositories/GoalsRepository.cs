@@ -15,7 +15,7 @@ public class GoalsRepository(WalletContext db, ILogger<GoalsRepository> logger) 
         db.Goals.Add(goal);
         await db.SaveChangesAsync(cancellationToken);
     }
-    public async Task AddSumtoGoal(Goal goal, decimal sum, CancellationToken cancellationToken)
+    public async Task AddSumToGoal(Goal goal, decimal sum, CancellationToken cancellationToken)
     {
         logger.LogInformation($"Запрос на добавление суммы к цели. GoalId: {goal.Id}, Sum: {sum}");
         goal.CurrentSum += sum;

@@ -1,13 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using Wallet.Server.Application;
 using Wallet.Server.Infrastructure.Contexts;
 using Wallet.Server.Infrastructure.Options;
 using Wallet.Server.Presentation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.ConfigureDependencies();
-builder.Services.ConfigureDependencies();
+Wallet.Server.Infrastructure.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
+Wallet.Server.Application.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
 
 builder.Services.AddCors(options =>
 {
@@ -50,3 +49,4 @@ app.Run();
 //:TODO поправить рефреш на клиенте
 //:TODO убрать лишние поля в ответах
 //:TODO заменить период енамом
+//:TODO перейти на постгрес

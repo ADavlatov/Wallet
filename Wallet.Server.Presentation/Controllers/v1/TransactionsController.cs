@@ -107,8 +107,8 @@ public class TransactionsController(
         CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на обновление транзакции. TransactionId: {request.TransactionId}.");
-        
-        
+
+
         var validationResult = await new UpdateTransactionRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {

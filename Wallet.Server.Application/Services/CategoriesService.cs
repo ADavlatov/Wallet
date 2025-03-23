@@ -6,14 +6,17 @@ using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Application.Services;
 
-public class CategoriesService(ICategoriesRepository categoriesRepository, IUsersRepository usersRepository, ILogger<CategoriesService> logger)
+public class CategoriesService(
+    ICategoriesRepository categoriesRepository,
+    IUsersRepository usersRepository,
+    ILogger<CategoriesService> logger)
     : ICategoriesService
 {
     public async Task AddCategory(Guid userId, string name, TransactionTypes type, CancellationToken cancellationToken)
     {
         logger.LogInformation($"Запрос на добавление категории. UserId: {userId}, Name: {name}, Type: {type}.");
         var user = await usersRepository.GetUserById(userId, cancellationToken);
-        
+
         await categoriesRepository.AddCategory(
             new Category(name, type)
             {
