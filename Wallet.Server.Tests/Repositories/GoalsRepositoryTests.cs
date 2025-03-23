@@ -62,7 +62,7 @@ public class GoalsRepositoryTests
         // Act
         var goalToUpdate = await context.Goals.FindAsync(goalId);
         Assert.NotNull(goalToUpdate);
-        await repository.AddSumtoGoal(goalToUpdate, amountToAdd, CancellationToken.None);
+        await repository.AddSumToGoal(goalToUpdate, amountToAdd, CancellationToken.None);
 
         // Assert
         var updatedGoal = await context.Goals.FindAsync(goalId);

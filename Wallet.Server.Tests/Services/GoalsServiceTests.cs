@@ -76,7 +76,7 @@ public class GoalsServiceTests
         await _goalsService.AddSumToGoal(goalId, sumToAdd, CancellationToken.None);
 
         // Assert
-        _goalsRepositoryMock.Verify(repo => repo.AddSumtoGoal(existingGoal, sumToAdd, It.IsAny<CancellationToken>()),
+        _goalsRepositoryMock.Verify(repo => repo.AddSumToGoal(existingGoal, sumToAdd, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -94,7 +94,7 @@ public class GoalsServiceTests
             _goalsService.AddSumToGoal(goalId, sumToAdd, CancellationToken.None));
 
         _goalsRepositoryMock.Verify(
-            repo => repo.AddSumtoGoal(It.IsAny<Goal>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()),
+            repo => repo.AddSumToGoal(It.IsAny<Goal>(), It.IsAny<decimal>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

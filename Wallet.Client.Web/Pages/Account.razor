@@ -4,10 +4,11 @@
 @using System.Text.Json.Serialization
 @using Wallet.Client.Web.Entities
 @using Wallet.Client.Web.Interfaces
+@using Wallet.Client.Web.Models
 @using Wallet.Client.Web.Models.Users
 @inject HttpClient HttpClient
 @inject ILocalStorageService LocalStorageService
-@inject Microsoft.JSInterop.IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 
 <div class="container mt-4">
     <div id="content" style="margin-top: 100px;">
@@ -218,15 +219,7 @@
     {
         if (!string.IsNullOrEmpty(_apiKey))
         {
-            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _apiKey);
+            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _apiKey);
         }
     }
-
-    public class ErrorResponse
-    {
-        [JsonPropertyName("message")] public string Message { get; set; }
-
-        [JsonPropertyName("errors")] public Dictionary<string, List<string>> Errors { get; set; }
-    }
-
 }

@@ -1,4 +1,5 @@
 ﻿@page "/Expenses"
+@using System.Net
 @using System.Net.Http.Headers
 @using Wallet.Client.Web.Entities
 @using Wallet.Client.Web.Interfaces
@@ -254,10 +255,10 @@
     private Transaction _transaction = new();
     private Transaction _editTransaction = new();
     private Category _editingCategory = new();
-    private bool _showCategoryModal = false;
-    private bool _showEditTransactionModal = false;
-    private bool _showManageCategoriesModal = false;
-    private bool _showEditCategoryModal = false;
+    private bool _showCategoryModal;
+    private bool _showEditTransactionModal;
+    private bool _showManageCategoriesModal;
+    private bool _showEditCategoryModal;
     private string _newCategoryName = "";
     private string _addTransactionError;
     private string _addCategoryError;
@@ -489,8 +490,17 @@
 
     private async Task HandleErrorResponse(HttpResponseMessage response, string context)
     {
-        var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-        var errorMessage = errorResponse?.Message ?? "Произошла ошибка.";
+        var errorMessage = "";
+        if (response.StatusCode == HttpStatusCode.BadRequest)
+        {
+            var errorResponse = await response.Content.ReadFromJsonAsync<List<ValidationError>>();
+            errorMessage = string.Join(", ", errorResponse.Select(x => x.ErrorMessage));
+        }
+        else
+        {
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            errorMessage = errorResponse.Message;
+        }
 
         switch (context)
         {
@@ -508,11 +518,5 @@
                 break;
         }
         StateHasChanged();
-    }
-
-    public class ErrorResponse
-    {
-        public string Message { get; set; }
-        public Dictionary<string, List<string>> Errors { get; set; }
     }
 }
