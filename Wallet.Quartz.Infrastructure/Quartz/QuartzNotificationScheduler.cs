@@ -7,8 +7,7 @@ namespace Wallet.Quartz.Infrastructure.Quartz;
 
 public class QuartzNotificationScheduler(
     ISchedulerFactory schedulerFactory,
-    ILogger<QuartzNotificationScheduler> logger,
-    HttpClient httpClient) : INotificationsScheduler
+    ILogger<QuartzNotificationScheduler> logger) : INotificationsScheduler
 {
     public async Task ScheduleNotification(Notification notification)
     {

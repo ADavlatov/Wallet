@@ -33,7 +33,8 @@ public class NotificationJob(
 
     private async Task DeleteNotificationFromDb(string notificationIdString)
     {
-        var response = await httpClient.DeleteAsync($"http://localhost:5221/api/v1/notifications/{notificationIdString}");
+        var response =
+            await httpClient.DeleteAsync($"http://localhost:5221/api/v1/notifications/{notificationIdString}");
         if (!response.IsSuccessStatusCode)
         {
             Console.WriteLine("");
