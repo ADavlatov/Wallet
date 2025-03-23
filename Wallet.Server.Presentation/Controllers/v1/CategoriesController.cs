@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Categories;
+using Wallet.Server.Application.Validators.Categories;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
@@ -15,10 +16,7 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("/api/v1/categories")]
 public class CategoriesController(
     ICategoriesService categoriesService,
-    ILogger<CategoriesController> logger,
-    IValidator<AddCategoryRequest> addCategoryValidator,
-    IValidator<GetCategoryByNameRequest> getCategoryByNameValidator,
-    IValidator<UpdateCategoryRequest> updateCategoryValidator) : ControllerBase
+    ILogger<CategoriesController> logger) : ControllerBase
 {
     /// <summary>
     /// Добавление новой категории
@@ -32,7 +30,8 @@ public class CategoriesController(
     {
         logger.LogInformation(
             $"Начало запроса на добавление категории. Пользователь: {request.UserId}, название: {request.Name}, тип: {request.Type}.");
-        var validationResult = await addCategoryValidator.ValidateAsync(request, cancellationToken);
+
+        var validationResult = await new AddCategoryRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
@@ -94,7 +93,7 @@ public class CategoriesController(
     {
         logger.LogInformation(
             $"Начало запроса на получение категории по названию. Пользователь: {request.UserId}, название: {request.Name}.");
-        var validationResult = await getCategoryByNameValidator.ValidateAsync(request, cancellationToken);
+        var validationResult = await new GetCategoryByNameRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
@@ -135,7 +134,7 @@ public class CategoriesController(
     {
         logger.LogInformation(
             $"Начало запроса на обновление категории. ID: {request.CategoryId}, новое название: {request.Name}.");
-        var validationResult = await updateCategoryValidator.ValidateAsync(request, cancellationToken);
+        var validationResult = await new UpdateCategoryRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(

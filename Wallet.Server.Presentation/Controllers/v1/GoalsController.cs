@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Goals;
+using Wallet.Server.Application.Validators.Goals;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
@@ -15,10 +16,7 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("/api/v1/goals")]
 public class GoalsController(
     IGoalsService goalsService,
-    ILogger<GoalsController> logger,
-    IValidator<AddGoalRequest> addGoalValidator,
-    IValidator<AddSumToGoalRequest> addSumToGoalValidator,
-    IValidator<UpdateGoalRequest> updateGoalValidator) : ControllerBase
+    ILogger<GoalsController> logger) : ControllerBase
 {
     /// <summary>
     /// Добавляет новую цель для пользователя.
@@ -31,6 +29,8 @@ public class GoalsController(
     {
         logger.LogInformation(
             $"Начало запроса на добавление цели. UserId: {request.UserId}, Name: {request.Name}, TargetSum: {request.TargetSum}, Deadline: {request.Deadline}.");
+
+        var addGoalValidator = new AddGoalRequestValidator();
         var validationResult = await addGoalValidator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -57,7 +57,8 @@ public class GoalsController(
     {
         logger.LogInformation(
             $"Начало запроса на добавление суммы к цели. GoalId: {request.GoalId}, Sum: {request.Sum}.");
-        var validationResult = await addSumToGoalValidator.ValidateAsync(request, cancellationToken);
+
+        var validationResult = await new AddSumToGoalRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
@@ -115,7 +116,8 @@ public class GoalsController(
     {
         logger.LogInformation(
             $"Начало запроса на обновление цели. GoalId: {request.GoalId}, Name: {request.Name}, TargetSum: {request.TargetSum}, Deadline: {request.Deadline}.");
-        var validationResult = await updateGoalValidator.ValidateAsync(request, cancellationToken);
+
+        var validationResult = await new UpdateGoalRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(

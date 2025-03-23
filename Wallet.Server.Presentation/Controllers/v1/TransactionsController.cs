@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Transactions;
+using Wallet.Server.Application.Validators.Transactions;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
@@ -15,9 +16,7 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("/api/v1/transactions")]
 public class TransactionsController(
     ITransactionsService transactionsService,
-    ILogger<TransactionsController> logger,
-    IValidator<AddTransactionRequest> addTransactionValidator,
-    IValidator<UpdateTransactionRequest> updateTransactionValidator) : ControllerBase
+    ILogger<TransactionsController> logger) : ControllerBase
 {
     /// <summary>
     /// Добавляет новую транзакцию.
@@ -31,7 +30,7 @@ public class TransactionsController(
     {
         logger.LogInformation(
             $"Начало запроса на добавление транзакции. UserId: {request.UserId}, CategoryId: {request.CategoryId}, Type: {request.Type}, Amount: {request.Amount}, Date: {request.Date}.");
-        var validationResult = await addTransactionValidator.ValidateAsync(request, cancellationToken);
+        var validationResult = await new AddTransactionRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
@@ -108,7 +107,9 @@ public class TransactionsController(
         CancellationToken cancellationToken)
     {
         logger.LogInformation($"Начало запроса на обновление транзакции. TransactionId: {request.TransactionId}.");
-        var validationResult = await updateTransactionValidator.ValidateAsync(request, cancellationToken);
+        
+        
+        var validationResult = await new UpdateTransactionRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(

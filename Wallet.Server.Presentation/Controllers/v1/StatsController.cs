@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Stats;
+using Wallet.Server.Application.Validators.Stats;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
@@ -15,10 +16,7 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("api/v1/stats")]
 public class StatsController(
     IStatsService statsService,
-    ILogger<StatsController> logger,
-    IValidator<GetExcelRequest> getExcelRequestValidator,
-    IValidator<GetLineChartDataRequest> getLineChartDataRequestValidator,
-    IValidator<GetPieChartRequest> getPieChartRequestValidator) : ControllerBase
+    ILogger<StatsController> logger) : ControllerBase
 {
     /// <summary>
     /// Получает Excel файл с транзакциями
@@ -32,7 +30,8 @@ public class StatsController(
     {
         logger.LogInformation(
             $"Начало запроса на получение Excel файла с транзакциями. UserId: {request.UserId}, Period: {request.Period}.");
-        var validationResult = await getExcelRequestValidator.ValidateAsync(request, cancellationToken);
+
+        var validationResult = await new GetExcelRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
@@ -60,7 +59,7 @@ public class StatsController(
     {
         logger.LogInformation(
             $"Начало запроса на получение данных для линейного графика. UserId: {request.UserId}, Period: {request.Period}.");
-        var validationResult = await getLineChartDataRequestValidator.ValidateAsync(request, cancellationToken);
+        var validationResult = await new GetLineChartDataRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
@@ -87,7 +86,7 @@ public class StatsController(
     {
         logger.LogInformation(
             $"Начало запроса на получение данных для кругового графика. UserId: {request.UserId}, Type: {request.type}, Period: {request.Period}.");
-        var validationResult = await getPieChartRequestValidator.ValidateAsync(request, cancellationToken);
+        var validationResult = await new GetPieChartRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(

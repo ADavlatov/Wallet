@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Wallet.Server.Application.Models.Notifications;
+using Wallet.Server.Application.Validators.Notifications;
 using Wallet.Server.Domain.Interfaces.Services;
 
 namespace Wallet.Server.Presentation.Controllers.v1;
@@ -14,9 +15,7 @@ namespace Wallet.Server.Presentation.Controllers.v1;
 [Route("/api/v1/notifications")]
 public class NotificationsController(
     INotificationsService notificationsService,
-    ILogger<NotificationsController> logger,
-    IValidator<AddNotificationRequest> addNotificationValidator,
-    IValidator<UpdateNotificationRequest> updateNotificationValidator) : ControllerBase
+    ILogger<NotificationsController> logger) : ControllerBase
 {
     /// <summary>
     /// Добавляет новое уведомление.
@@ -31,7 +30,8 @@ public class NotificationsController(
     {
         logger.LogInformation(
             $"Начало запроса на добавление уведомления. UserId: {request.UserId}, Name: {request.Name}.");
-        var validationResult = await addNotificationValidator.ValidateAsync(request, cancellationToken);
+
+        var validationResult = await new AddNotificationRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
@@ -76,7 +76,8 @@ public class NotificationsController(
     {
         logger.LogInformation(
             $"Начало запроса на обновление уведомления. NotificationId: {request.NotificationId}, Name: {request.Name}.");
-        var validationResult = await updateNotificationValidator.ValidateAsync(request, cancellationToken);
+        
+        var validationResult = await new UpdateNotificationRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
             logger.LogWarning(
