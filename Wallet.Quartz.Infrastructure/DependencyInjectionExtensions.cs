@@ -8,7 +8,7 @@ namespace Wallet.Quartz.Infrastructure;
 
 public static class DependencyInjectionExtensions
 {
-    public static void ConfigureDependencies(this IServiceCollection services)
+    public static void AddInfrastructureLayerServices(this IServiceCollection services)
     {
         services.AddTransient<INotificationsRepository, NotificationsRepository>();
         services.AddTransient<INotificationSender, TelegramMessageSender>();

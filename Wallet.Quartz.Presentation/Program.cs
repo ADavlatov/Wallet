@@ -1,12 +1,14 @@
 using Quartz;
 using Quartz.AspNetCore;
+using Wallet.Quartz.Application;
+using Wallet.Quartz.Infrastructure;
 using Wallet.Quartz.Infrastructure.Contexts;
 using Wallet.Quartz.Infrastructure.Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Wallet.Quartz.Infrastructure.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
-Wallet.Quartz.Application.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
+builder.Services.AddInfrastructureLayerServices();
+builder.Services.AddApplicationLayerServices();
 
 builder.Services.AddDbContext<QuartzContext>();
 builder.Services.AddHttpClient();
