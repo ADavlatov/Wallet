@@ -15,8 +15,14 @@ public class TransactionsService(
     public async Task AddTransaction(Guid userId, Guid categoryId, string? name, decimal amount, DateOnly date,
         TransactionTypes type, CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Запрос на добавление транзакции. UserId: {userId}, CategoryId: {categoryId}, Name: {name}, Amount: {amount}, Date: {date}, Type: {type}");
+        logger.LogInformation("Запрос на добавление транзакции. " +
+                              "UserId: {UserId}, " +
+                              "CategoryId: {CategoryId}, " +
+                              "Name: {Name}, " +
+                              "Amount: {Amount}, " +
+                              "Date: {Date}, " +
+                              "Type: {Type}", userId, categoryId, name, amount, date, type);
+
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
         await transactionsRepository.AddTransaction(
@@ -33,20 +39,20 @@ public class TransactionsService(
     public async Task<List<Transaction>> GetTransactionsByType(Guid userId, TransactionTypes type,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение транзакций по типу. UserId: {userId}, Type: {type}");
+        logger.LogInformation("Запрос на получение транзакций по типу. UserId: {UserId}, Type: {Type}", userId, type);
         return await transactionsRepository.GetAllTransactionsByType(userId, type, cancellationToken);
     }
 
     public async Task<List<Transaction>> GetTransactionsByCategory(Guid categoryId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение транзакций по категории. CategoryId: {categoryId}");
+        logger.LogInformation("Запрос на получение транзакций по категории. CategoryId: {CategoryId}", categoryId);
         return await transactionsRepository.GetAllTransactionsByCategory(categoryId, cancellationToken);
     }
 
 
     public async Task<Transaction> GetTransactionById(Guid transactionId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение транзакции. TransactionId: {transactionId}");
+        logger.LogInformation("Запрос на получение транзакции. TransactionId: {TransactionId}", transactionId);
         return await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
     }
 
@@ -54,15 +60,19 @@ public class TransactionsService(
         DateOnly? date,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Запрос на обновление транзакции. TransactionId: {transactionId}, CategoryId: {categoryId}, Name: {name}, Amount: {amount}, Date: {date}");
+        logger.LogInformation("Запрос на обновление транзакции. " +
+                              "TransactionId: {TransactionId}, " +
+                              "CategoryId: {CategoryId}, " +
+                              "Name: {Name}, " +
+                              "Amount: {Amount}, " +
+                              "Date: {Date}", transactionId, categoryId, name, amount, date);
+
         var transaction = await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
 
         if (categoryId is not null)
         {
             var category = await categoriesRepository.GetCategoryById(categoryId.Value, cancellationToken);
             transaction.CategoryId = category.Id;
-            transaction.Category = category;
         }
 
         transaction.Name = name ?? transaction.Name;
@@ -74,7 +84,7 @@ public class TransactionsService(
 
     public async Task DeleteTransaction(Guid transactionId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на удаление транзакции. TransactionId: {transactionId}");
+        logger.LogInformation("Запрос на удаление транзакции. TransactionId: {TransactionId}", transactionId);
         var transaction = await transactionsRepository.GetTransactionById(transactionId, cancellationToken);
         await transactionsRepository.DeleteTransaction(transaction, cancellationToken);
     }

@@ -2,4 +2,7 @@
 
 namespace Wallet.Server.Application.Models.Categories;
 
-public record AddCategoryRequest(Guid UserId, string Name, TransactionTypes Type);
+public record AddCategoryRequest(
+    Guid UserId, 
+    string Name, 
+    TransactionTypes Type);

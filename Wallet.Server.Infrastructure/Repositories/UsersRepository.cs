@@ -11,7 +11,7 @@ public class UsersRepository(WalletContext db, ILogger<UsersRepository> logger) 
 {
     public async Task<User> AddUser(User user, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на добавление пользователя. Username: {user.Username}");
+        logger.LogInformation("Запрос на добавление пользователя. Username: {Username}", user.Username);
         var isExists = await db.Users
             .AnyAsync(x => x.Username == user.Username, cancellationToken);
 
@@ -27,7 +27,7 @@ public class UsersRepository(WalletContext db, ILogger<UsersRepository> logger) 
 
     public async Task<List<User>> GetAllUsers(CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение всех пользователей.");
+        logger.LogInformation("Запрос на получение всех пользователей.");
         var users = await db.Users
             .ToListAsync(cancellationToken);
 
@@ -41,7 +41,7 @@ public class UsersRepository(WalletContext db, ILogger<UsersRepository> logger) 
 
     public async Task<User> GetUserById(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение пользователя по ID. UserId: {userId}");
+        logger.LogInformation("Запрос на получение пользователя по ID. UserId: {UserId}", userId);
         var user = await db.Users
             .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
 
@@ -55,7 +55,7 @@ public class UsersRepository(WalletContext db, ILogger<UsersRepository> logger) 
 
     public async Task<User> GetUserByUsername(string username, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение пользователя по имени. Username: {username}");
+        logger.LogInformation("Запрос на получение пользователя по имени. Username: {Username}", username);
         var user = await db.Users
             .FirstOrDefaultAsync(x => x.Username == username, cancellationToken);
 
@@ -69,7 +69,7 @@ public class UsersRepository(WalletContext db, ILogger<UsersRepository> logger) 
 
     public async Task<User> GetUserByApiKey(string apiKey, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение пользователя по API ключу. ApiKey: {apiKey}");
+        logger.LogInformation("Запрос на получение пользователя по API ключу. ApiKey: {ApiKey}", apiKey);
         var user = await db.Users
             .FirstOrDefaultAsync(x => x.ApiKey == apiKey, cancellationToken);
 
@@ -83,14 +83,16 @@ public class UsersRepository(WalletContext db, ILogger<UsersRepository> logger) 
 
     public async Task UpdateUser(User updatedUser, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление пользователя. Id: {updatedUser.Id}, Username: {updatedUser.Username}");
+        logger.LogInformation("Запрос на обновление пользователя. " +
+                              "Id: {Id}, Username: {Username}", updatedUser.Id, updatedUser.Username);
+
         db.Users.Update(updatedUser);
         await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteUser(User user, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на удаление пользователя. Id: {user.Id}");
+        logger.LogInformation("Запрос на удаление пользователя. Id: {Id}", user.Id);
         db.Users.Remove(user);
         await db.SaveChangesAsync(cancellationToken);
     }

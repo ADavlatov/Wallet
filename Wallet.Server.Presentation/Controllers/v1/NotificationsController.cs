@@ -28,21 +28,24 @@ public class NotificationsController(
     public async Task<IActionResult> AddNotification([FromBody] AddNotificationRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на добавление уведомления. UserId: {request.UserId}, Name: {request.Name}.");
+        logger.LogInformation("Начало запроса на добавление уведомления. " +
+                              "UserId: {UserId}, Name: {Name}.", request.UserId, request.Name);
 
         var validationResult = await new AddNotificationRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            logger.LogWarning(
-                $"Ошибка валидации при добавлении уведомления. UserId: {request.UserId}, Name: {request.Name}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            logger.LogWarning("Ошибка валидации при добавлении уведомления. " +
+                              "UserId: {request.UserId}, Name: {request.Name}.", request.UserId, request.Name);
+
             return BadRequest(validationResult.Errors);
         }
 
-        await notificationsService.AddNotification(request.UserId, request.Name, request.Description, request.DateTime,
-            cancellationToken);
-        logger.LogInformation(
-            $"Запрос на добавление уведомления завершен. UserId: {request.UserId}, Name: {request.Name}.");
+        await notificationsService
+            .AddNotification(request.UserId, request.Name, request.Description, request.DateTime, cancellationToken);
+
+        logger.LogInformation("Запрос на добавление уведомления завершен. " +
+                              "UserId: {request.UserId}, Name: {request.Name}.", request.UserId, request.Name);
+
         return Ok();
     }
 
@@ -56,10 +59,11 @@ public class NotificationsController(
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetNotifications(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на получение уведомлений пользователя. UserId: {userId}.");
+        logger.LogInformation("Начало запроса на получение уведомлений пользователя. UserId: {UserId}.", userId);
         var result = await notificationsService.GetNotifications(userId, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на получение уведомлений пользователя завершен. UserId: {userId}. Количество уведомлений: {result.Count}.");
+        logger.LogInformation("Запрос на получение уведомлений пользователя завершен. " +
+                              "UserId: {UserId}. Количество уведомлений: {Count}.", userId, result.Count);
+
         return Ok(result);
     }
 
@@ -74,20 +78,25 @@ public class NotificationsController(
     public async Task<IActionResult> UpdateNotification([FromBody] UpdateNotificationRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на обновление уведомления. NotificationId: {request.NotificationId}, Name: {request.Name}.");
+        logger.LogInformation("Начало запроса на обновление уведомления. " +
+                              "NotificationId: {NotificationId}, Name: {.Name}.", request.NotificationId, request.Name);
 
         var validationResult = await new UpdateNotificationRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            logger.LogWarning(
-                $"Ошибка валидации при обновлении уведомления. NotificationId: {request.NotificationId}, Name: {request.Name}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            logger.LogWarning("Ошибка валидации при обновлении уведомления. " +
+                              "NotificationId: {NotificationId}, Name: {Name}.", request.NotificationId, request.Name);
+
             return BadRequest(validationResult.Errors);
         }
 
-        await notificationsService.UpdateNotification(request.NotificationId, request.Name, request.Description,
-            request.DateTime, cancellationToken);
-        logger.LogInformation($"Запрос на обновление уведомления завершен. NotificationId: {request.NotificationId}.");
+        await notificationsService
+            .UpdateNotification(request.NotificationId, request.Name, request.Description, request.DateTime,
+                cancellationToken);
+
+        logger.LogInformation("Запрос на обновление уведомления завершен. " +
+                              "NotificationId: {NotificationId}.", request.NotificationId);
+
         return Ok();
     }
 
@@ -100,9 +109,13 @@ public class NotificationsController(
     [HttpDelete("{notificationId}")]
     public async Task<IActionResult> DeleteNotification(Guid notificationId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на удаление уведомления. NotificationId: {notificationId}.");
+        logger.LogInformation("Начало запроса на удаление уведомления. " +
+                              "NotificationId: {NotificationId}.", notificationId);
+
         await notificationsService.DeleteNotification(notificationId, cancellationToken);
-        logger.LogInformation($"Запрос на удаление уведомления завершен. NotificationId: {notificationId}.");
+
+        logger.LogInformation("Запрос на удаление уведомления завершен. " +
+                              "NotificationId: {NotificationId}.", notificationId);
         return Ok();
     }
 }

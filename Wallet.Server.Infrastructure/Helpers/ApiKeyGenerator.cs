@@ -12,7 +12,7 @@ public static class ApiKeyGenerator
         var byteData = new byte[32];
         rng.GetBytes(byteData);
         var apiKey = Convert.ToBase64String(byteData).Replace("+", "").Replace("/", "").Replace("=", "");
-        logger.LogInformation($"API ключ успешно сгенерирован: {apiKey}");
+        logger.LogInformation("API ключ успешно сгенерирован: {ApiKey}", apiKey);
         return apiKey;
     }
 }

@@ -21,8 +21,12 @@ public class NotificationsService(
     public async Task AddNotification(Guid userId, string name, string description, DateTime dateTime,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Запрос на добавление уведомления. UserId: {userId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
+        logger.LogInformation("Запрос на добавление уведомления. " +
+                              "UserId: {UserId}, " +
+                              "Name: {Name}, " +
+                              "Description: {Description}, " +
+                              "DateTime: {DateTime}", userId, name, description, dateTime);
+
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         if (user.TelegramUserId == null)
         {
@@ -53,15 +57,19 @@ public class NotificationsService(
 
     public async Task<List<Notification>> GetNotifications(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение уведомлений. UserId: {userId}");
+        logger.LogInformation("Запрос на получение уведомлений. UserId: {UserId}", userId);
         return await notificationsRepository.GetNotifications(userId, cancellationToken);
     }
 
     public async Task UpdateNotification(Guid notificationId, string? name, string? description, DateTime? dateTime,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Запрос на обновление уведомления. NotificationId: {notificationId}, Name: {name}, Description: {description}, DateTime: {dateTime}");
+        logger.LogInformation("Запрос на обновление уведомления. " +
+                              "NotificationId: {NotificationId}, " +
+                              "Name: {Name}, " +
+                              "Description: {Description}," +
+                              " DateTime: {DateTime}", notificationId, name, description, dateTime);
+
         var notification = await notificationsRepository.GetNotificationById(notificationId, cancellationToken);
 
         notification.Name = name ?? notification.Name;
@@ -73,7 +81,7 @@ public class NotificationsService(
 
     public async Task DeleteNotification(Guid notificationId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на удаление уведомления. NotificationId: {notificationId}");
+        logger.LogInformation("Запрос на удаление уведомления. NotificationId: {NotificationId}", notificationId);
         var notification = await notificationsRepository.GetNotificationById(notificationId, cancellationToken);
         await notificationsRepository.DeleteNotification(notification, cancellationToken);
     }

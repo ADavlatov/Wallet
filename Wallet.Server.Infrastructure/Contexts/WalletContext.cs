@@ -55,7 +55,7 @@ public sealed class WalletContext : DbContext
             builder.HasOne(x => x.User).WithMany(x => x.Goals).HasForeignKey(x => x.UserId);
         }
     }
-    
+
     private class NotificationConfiguration : IEntityTypeConfiguration<Notification>
     {
         public void Configure(EntityTypeBuilder<Notification> builder)
