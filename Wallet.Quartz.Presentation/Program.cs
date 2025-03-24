@@ -1,6 +1,7 @@
 using Quartz;
 using Quartz.AspNetCore;
 using Wallet.Quartz.Application;
+using Wallet.Quartz.Domain.Interfaces;
 using Wallet.Quartz.Infrastructure;
 using Wallet.Quartz.Infrastructure.Contexts;
 using Wallet.Quartz.Infrastructure.Quartz;
@@ -39,7 +40,7 @@ builder.Services.AddQuartz(q =>
     });
 });
 
-builder.Services.AddScoped<QuartzNotificationScheduler>();
+builder.Services.AddScoped<INotificationsScheduler, QuartzNotificationScheduler>();
 builder.Services.AddQuartzServer(options => { options.WaitForJobsToComplete = true; });
 
 var app = builder.Build();

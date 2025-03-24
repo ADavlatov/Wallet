@@ -6,7 +6,7 @@
 @using Wallet.Client.Web.Interfaces
 @using Wallet.Client.Web.Models
 @using Wallet.Client.Web.Models.Users
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject ILocalStorageService LocalStorageService
 @inject IJSRuntime JsRuntime
 
@@ -73,7 +73,7 @@
                     {
                         <div class="mb-3 d-flex align-items-center">
                             <label for="apiKey" class="form-label me-2">API ключ:</label>
-                            <InputText id="apiKey" class="form-control flex-grow-1" @bind-Value="_apiKey" ReadOnly/>
+                            <InputText style="background-color: unset" id="apiKey" class="form-control flex-grow-1" @bind-Value="_apiKey" ReadOnly/>
                             <button class="btn btn-outline-secondary ms-2" @onclick="CopyToClipboard">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
                                     <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
@@ -121,8 +121,9 @@
         var user = await LocalStorageService.GetItem<User>("user");
         if (user != null)
         {
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
-            var response = await HttpClient.GetAsync($"api/v1/users/{user.UserId}");
+            var httpClient = HttpClientFactory.CreateClient("MainClient");
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await httpClient.GetAsync($"api/v1/users/{user.UserId}");
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
@@ -154,9 +155,10 @@
         var user = await LocalStorageService.GetItem<User>("user");
         if (user != null)
         {
+            var httpClient = HttpClientFactory.CreateClient("MainClient");
             var updateUserRequest = new UpdateUserRequest(user.UserId, _newUsername, _newPassword);
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
-            var response = await HttpClient.PutAsJsonAsync("api/v1/users", updateUserRequest);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await httpClient.PutAsJsonAsync("api/v1/users", updateUserRequest);
             var content = await response.Content.ReadAsStringAsync();
             if (response.IsSuccessStatusCode)
             {
@@ -189,9 +191,10 @@
         var user = await LocalStorageService.GetItem<User>("user");
         if (user != null)
         {
+            var httpClient = HttpClientFactory.CreateClient("MainClient");
             var getApiKeyRequest = new GetApiKeyRequest(user.UserId);
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
-            var response = await HttpClient.PostAsJsonAsync("api/v1/users/GetApiKey", getApiKeyRequest);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await httpClient.PostAsJsonAsync("api/v1/users/GetApiKey", getApiKeyRequest);
             var content = await response.Content.ReadAsStringAsync();
             _apiKey = content != "" ? content : "Ошибка обновления ключа";
         }
@@ -203,9 +206,10 @@
         var user = await LocalStorageService.GetItem<User>("user");
         if (user != null)
         {
+            var httpClient = HttpClientFactory.CreateClient("MainClient");
             var updateApiKeyRequest = new UpdateApiKeyRequest(user.UserId);
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
-            var response = await HttpClient.PutAsJsonAsync("api/v1/users/UpdateApiKey", updateApiKeyRequest);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await httpClient.PutAsJsonAsync("api/v1/users/UpdateApiKey", updateApiKeyRequest);
 
             if (response.IsSuccessStatusCode)
             {

@@ -1,123 +1,125 @@
 ﻿@page "/Incomes"
+@using System.Net
 @using System.Net.Http.Headers
 @using Wallet.Client.Web.Entities
 @using Wallet.Client.Web.Interfaces
+@using Wallet.Client.Web.Models
 @using Wallet.Client.Web.Models.Catergories
 @using Wallet.Client.Web.Models.Transactions
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject ILocalStorageService LocalStorageService
 
 <PageTitle>Доходы</PageTitle>
 
-<h1 style="margin-bottom: 30px">Доходы</h1>
-
-<div class="card mb-3">
-    <div class="add-block card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>Добавить новый элемент</h2>
-            <div>
-                <button @onclick="OpenManageCategoriesModal" class="btn btn-secondary me-2">Управление категориями</button>
-                <button @onclick="OpenCategoryModal" class="btn btn-secondary">Добавить категорию</button>
+<div class="custom-container">
+    <h1 style="margin: 30px 0">Доходы</h1>
+    <div class="card mb-3">
+        <div class="add-block card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Добавить новый элемент</h2>
+                <div>
+                    <button @onclick="OpenManageCategoriesModal" class="btn btn-secondary me-2">Управление категориями</button>
+                    <button @onclick="OpenCategoryModal" class="btn btn-secondary">Добавить категорию</button>
+                </div>
             </div>
-        </div>
 
-        <div class="category-input mb-3">
-            <label for="category" class="form-label">Категория:</label>
-            <InputSelect id="category" class="form-select" @bind-Value="_transaction.CategoryId">
-                <option value="">-- Выберите категорию --</option>
-                @foreach (var category in _categories)
-                {
-                    <option value="@category.Id">@category.Name</option>
-                }
-            </InputSelect>
-        </div>
+            <div class="category-input mb-3">
+                <label for="category" class="form-label">Категория:</label>
+                <InputSelect id="category" class="form-select" @bind-Value="_transaction.CategoryId">
+                    <option value="">-- Выберите категорию --</option>
+                    @foreach (var category in _categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </InputSelect>
+            </div>
 
-        <div class="amount-input mb-3">
-            <label for="amount" class="form-label">Сумма:</label>
-            <InputNumber id="amount" class="form-control" @bind-Value="_transaction.Amount"/>
-        </div>
+            <div class="amount-input mb-3">
+                <label for="amount" class="form-label">Сумма:</label>
+                <InputNumber id="amount" class="form-control" @bind-Value="_transaction.Amount"/>
+            </div>
 
-        <div class="date-input mb-3">
-            <label for="date" class="form-label">Дата:</label>
-            <InputDate id="date" class="form-control" @bind-Value="_transaction.Date"/>
-        </div>
+            <div class="date-input mb-3">
+                <label for="date" class="form-label">Дата:</label>
+                <InputDate id="date" class="form-control" @bind-Value="_transaction.Date"/>
+            </div>
 
-        <div class="name-input mb-3">
-            <label for="name" class="form-label">Имя (необязательно):</label>
-            <InputText id="name" class="form-control" @bind-Value="_transaction.Name"/>
-        </div>
+            <div class="name-input mb-3">
+                <label for="name" class="form-label">Имя (необязательно):</label>
+                <InputText id="name" class="form-control" @bind-Value="_transaction.Name"/>
+            </div>
 
-        <button @onclick="AddTransaction" class="btn btn-primary">Добавить элемент</button>
-        @if (!string.IsNullOrEmpty(_addTransactionError))
+            <button @onclick="AddTransaction" class="btn btn-primary">Добавить элемент</button>
+            @if (!string.IsNullOrEmpty(_addTransactionError))
+            {
+                <div class="mt-2 text-danger">@_addTransactionError</div>
+            }
+        </div>
+    </div>
+
+    <div class="items-list mt-3">
+        <h2>Список элементов</h2>
+        @if (_transactions.Any())
         {
-            <div class="mt-2 text-danger">@_addTransactionError</div>
+            <table class="table table-dark">
+                <thead>
+                <tr>
+                    <th>Категория</th>
+                    <th>Имя</th>
+                    <th>Сумма</th>
+                    <th>Дата</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var transaction in _transactions)
+                {
+                    <tr>
+                        <td>@GetCategoryName(transaction.CategoryId)</td>
+                        <td>@transaction.Name</td>
+                        <td>@transaction.Amount</td>
+                        <td>@transaction.Date.ToShortDateString()</td>
+                        <td>
+                            <button @onclick="() => OpenEditTransactionModal(transaction)" class="btn btn-sm btn-primary">Изменить</button>
+                            <button @onclick="() => DeleteTransaction(transaction.Id)" class="btn btn-sm btn-danger ms-2">Удалить</button>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>Список элементов пуст.</p>
         }
     </div>
 </div>
-
-<div class="items-list mt-3">
-    <h2>Список элементов</h2>
-    @if (_transactions.Any())
-    {
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>Категория</th>
-                <th>Имя</th>
-                <th>Сумма</th>
-                <th>Дата</th>
-                <th>Действия</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var transaction in _transactions)
-            {
-                <tr>
-                    <td>@GetCategoryName(transaction.CategoryId)</td>
-                    <td>@transaction.Name</td>
-                    <td>@transaction.Amount</td>
-                    <td>@transaction.Date.ToShortDateString()</td>
-                    <td>
-                        <button @onclick="() => OpenEditTransactionModal(transaction)" class="btn btn-sm btn-primary">Изменить</button>
-                        <button @onclick="() => DeleteTransaction(transaction.Id)" class="btn btn-sm btn-danger ms-2">Удалить</button>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>Список элементов пуст.</p>
-    }
-</div>
-
 @if (_showCategoryModal)
 {
-<div class="modal fade show" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-modal="true" style="display: block;">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="categoryModalLabel">Добавить категорию</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseCategoryModal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="categoryName" class="form-label">Имя категории:</label>
-                    <InputText id="categoryName" class="form-control" @bind-Value="_newCategoryName"/>
+    <div class="modal fade show" id="categoryModal" tabindex="-1" role="dialog" aria-labelledby="categoryModalLabel" aria-modal="true" style="display: block;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoryModalLabel">Добавить категорию</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseCategoryModal"></button>
                 </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Имя категории:</label>
+                        <InputText id="categoryName" class="form-control" @bind-Value="_newCategoryName"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" @onclick="AddCategory">Создать категорию</button>
+                </div>
+                @if (!string.IsNullOrEmpty(_addCategoryError))
+                {
+                    <div class="modal-body text-danger">@_addCategoryError</div>
+                }
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick="AddCategory">Создать категорию</button>
-            </div>
-            @if (!string.IsNullOrEmpty(_addCategoryError))
-            {
-            <div class="modal-body text-danger">@_addCategoryError</div>
-            }
         </div>
     </div>
-</div>
-<div class="modal-backdrop fade show"></div>
+    <div class="modal-backdrop fade show"></div>
 }
 
 @if (_showEditTransactionModal)
@@ -182,7 +184,7 @@
                 <div class="modal-body">
                     @if (_categories.Any())
                     {
-                        <table class="table table-striped">
+                        <table class="table table-dark">
                             <thead>
                             <tr>
                                 <th>Имя категории</th>
@@ -253,10 +255,10 @@
     private Transaction _transaction = new();
     private Transaction _editTransaction = new();
     private Category _editingCategory = new();
-    private bool _showCategoryModal = false;
-    private bool _showEditTransactionModal = false;
-    private bool _showManageCategoriesModal = false;
-    private bool _showEditCategoryModal = false;
+    private bool _showCategoryModal;
+    private bool _showEditTransactionModal;
+    private bool _showManageCategoriesModal;
+    private bool _showEditCategoryModal;
     private string _newCategoryName = "";
     private string _addTransactionError;
     private string _addCategoryError;
@@ -325,11 +327,12 @@
     {
         if (!string.IsNullOrEmpty(_newCategoryName))
         {
+            var httpClient = HttpClientFactory.CreateClient("MainClient");
             var user = await LocalStorageService.GetItem<User>("user");
             var addCategoryRequest = new AddCategoryRequest(user.UserId, _newCategoryName, Type);
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-            var response = await HttpClient.PostAsJsonAsync("api/v1/categories/AddCategory", addCategoryRequest);
+            var response = await httpClient.PostAsJsonAsync("api/v1/categories/AddCategory", addCategoryRequest);
             if (response.IsSuccessStatusCode)
             {
                 _showCategoryModal = false;
@@ -351,10 +354,11 @@
     private async Task GetCategories()
     {
         var user = await LocalStorageService.GetItem<User>("user");
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
         var getCategoriesRequest = new GetCategoriesRequest(user.UserId, Type);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        var response = await HttpClient.PostAsJsonAsync("api/v1/categories/GetCategoriesByType", getCategoriesRequest);
+        var response = await httpClient.PostAsJsonAsync("api/v1/categories/GetCategoriesByType", getCategoriesRequest);
         if (response.IsSuccessStatusCode)
         {
             _categories = await response.Content.ReadFromJsonAsync<List<Category>>();
@@ -370,10 +374,11 @@
     {
         _addTransactionError = string.Empty;
         var user = await LocalStorageService.GetItem<User>("user");
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
         var addTransactionRequest = new AddTransactionRequest(user.UserId, _transaction.CategoryId, _transaction.Name, _transaction.Amount, _transaction.Date, Type);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        var response = await HttpClient.PostAsJsonAsync("api/v1/transactions/AddTransaction", addTransactionRequest);
+        var response = await httpClient.PostAsJsonAsync("api/v1/transactions/AddTransaction", addTransactionRequest);
         if (response.IsSuccessStatusCode)
         {
             _transaction = new Transaction();
@@ -390,10 +395,11 @@
     {
         _editTransactionError = string.Empty;
         var user = await LocalStorageService.GetItem<User>("user");
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
         var updateTransactionRequest = new UpdateTransactionRequest(_editTransaction.Id, _editTransaction.CategoryId, _editTransaction.Name, _editTransaction.Amount, _editTransaction.Date);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        var response = await HttpClient.PutAsJsonAsync("api/v1/transactions", updateTransactionRequest);
+        var response = await httpClient.PutAsJsonAsync("api/v1/transactions", updateTransactionRequest);
         if (response.IsSuccessStatusCode)
         {
             _showEditTransactionModal = false;
@@ -409,9 +415,10 @@
     private async Task DeleteTransaction(string transactionId)
     {
         var user = await LocalStorageService.GetItem<User>("user");
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        var response = await HttpClient.DeleteAsync($"api/v1/transactions/{transactionId}");
+        var response = await httpClient.DeleteAsync($"api/v1/transactions/{transactionId}");
         if (response.IsSuccessStatusCode)
         {
             await GetTransactions();
@@ -427,14 +434,16 @@
     {
         _editCategoryError = string.Empty;
         var user = await LocalStorageService.GetItem<User>("user");
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
         var updateCategoryRequest = new UpdateCategoryRequest(_editingCategory.Id, _editingCategory.Name);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        var response = await HttpClient.PutAsJsonAsync("api/v1/categories", updateCategoryRequest);
+        var response = await httpClient.PutAsJsonAsync("api/v1/categories", updateCategoryRequest);
         if (response.IsSuccessStatusCode)
         {
             _showEditCategoryModal = false;
             await GetCategories();
+            await GetTransactions();
             StateHasChanged();
         }
         else
@@ -446,12 +455,14 @@
     private async Task DeleteCategory(string categoryId)
     {
         var user = await LocalStorageService.GetItem<User>("user");
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        var response = await HttpClient.DeleteAsync($"api/v1/categories/{categoryId}");
+        var response = await httpClient.DeleteAsync($"api/v1/categories/{categoryId}");
         if (response.IsSuccessStatusCode)
         {
             await GetCategories();
+            await GetTransactions();
             StateHasChanged();
         }
         else
@@ -463,10 +474,11 @@
     private async Task GetTransactions()
     {
         var user = await LocalStorageService.GetItem<User>("user");
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
         var getTransactionsRequest = new GetTransactionsByTypeRequest(user.UserId, Type);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
-        var response = await HttpClient.PostAsJsonAsync("api/v1/transactions/GetTransactionsByType", getTransactionsRequest);
+        var response = await httpClient.PostAsJsonAsync("api/v1/transactions/GetTransactionsByType", getTransactionsRequest);
         if (response.IsSuccessStatusCode)
         {
             _transactions = await response.Content.ReadFromJsonAsync<List<Transaction>>();
@@ -486,8 +498,17 @@
 
     private async Task HandleErrorResponse(HttpResponseMessage response, string context)
     {
-        var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-        var errorMessage = errorResponse?.Message ?? "Произошла ошибка.";
+        var errorMessage = "";
+        if (response.StatusCode == HttpStatusCode.BadRequest)
+        {
+            var errorResponse = await response.Content.ReadFromJsonAsync<List<ValidationError>>();
+            errorMessage = string.Join(", ", errorResponse.Select(x => x.ErrorMessage));
+        }
+        else
+        {
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            errorMessage = errorResponse.Message;
+        }
 
         switch (context)
         {
@@ -504,12 +525,8 @@
                 _editCategoryError = errorMessage;
                 break;
         }
+
         StateHasChanged();
     }
 
-    public class ErrorResponse
-    {
-        public string Message { get; set; }
-        public Dictionary<string, List<string>> Errors { get; set; }
-    }
 }

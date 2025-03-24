@@ -5,7 +5,7 @@
 @using Wallet.Client.Web.Models
 @using Wallet.Client.Web.Models.Users
 @inject NavigationManager NavigationManager
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject ILocalStorageService LocalStorageService
 
 <PageTitle>Регистрация</PageTitle>
@@ -71,7 +71,8 @@
     {
         _loading = true;
 
-        var response = await HttpClient.PostAsJsonAsync("/api/v1/users/SignUp", _requestModel);
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
+        var response = await httpClient.PostAsJsonAsync("/api/v1/users/SignUp", _requestModel);
         if (response.IsSuccessStatusCode)
         {
             await LocalStorageService.SetItem("user", await response.Content.ReadFromJsonAsync<User>());
