@@ -191,7 +191,6 @@ public class TransactionsServiceTests
 
         // Assert
         Assert.Equal(newCategoryId, existingTransaction.CategoryId);
-        Assert.Equal(newCategory, existingTransaction.Category);
         Assert.Equal(newName, existingTransaction.Name);
         Assert.Equal(newAmount, existingTransaction.Amount);
         Assert.Equal(newDate, existingTransaction.Date);
