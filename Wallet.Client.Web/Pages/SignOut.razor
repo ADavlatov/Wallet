@@ -1,13 +1,14 @@
 ﻿@page "/signout"
 @using Wallet.Client.Web.Interfaces
-@inject IAuthenticationService AuthenticationService
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService LocalStorageService
 
 <PageTitle>Выход</PageTitle>
 
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await AuthenticationService.SignOut();
+        await LocalStorageService.RemoveItem("user");
+        NavigationManager.NavigateTo("/signin", true);
     }
 }

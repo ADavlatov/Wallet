@@ -4,8 +4,11 @@
 @using System.Text.Json.Serialization
 @using Wallet.Client.Web.Entities
 @using Wallet.Client.Web.Interfaces
+@using Wallet.Client.Web.Models
+@using Wallet.Client.Web.Models.Users
 @inject HttpClient HttpClient
 @inject ILocalStorageService LocalStorageService
+@inject IJSRuntime JsRuntime
 
 <div class="container mt-4">
     <div id="content" style="margin-top: 100px;">
@@ -15,49 +18,208 @@
                     <h5 class="card-title">Ваш профиль</h5>
                     <p class="card-text">Имя: @_user.Username</p>
                     <p class="card-text">Telegram: @(_user.TelegramUserId != null ? "true" : "false")</p>
-                    <a href="#" class="btn btn-primary">Редактировать профиль</a>
+                    <button @onclick="OpenEditProfileModal" class="btn btn-primary me-2">Редактировать профиль</button>
+                    <button @onclick="OpenApiKeyModal" class="btn btn-secondary">Получить API ключ</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+@if (_showEditProfileModal)
+{
+    <div class="modal fade show" id="editProfileModal" tabindex="-1" role="dialog" aria-labelledby="editProfileModalLabel" aria-modal="true" style="display: block;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProfileModalLabel">Редактировать профиль</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseEditProfileModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newUsername" class="form-label">Новое имя:</label>
+                        <InputText id="newUsername" class="form-control" @bind-Value="_newUsername"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Новый пароль:</label>
+                        <InputText id="newPassword" type="password" class="form-control" @bind-Value="_newPassword"/>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_editProfileError))
+                    {
+                        <div class="text-danger mt-2">@_editProfileError</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEditProfileModal">Отмена</button>
+                    <button type="button" class="btn btn-primary" @onclick="UpdateProfile">Сохранить изменения</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@if (_showApiKeyModal)
+{
+    <div class="modal fade show" id="apiKeyModal" tabindex="-1" role="dialog" aria-labelledby="apiKeyModalLabel" aria-modal="true" style="display: block;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="apiKeyModalLabel">Ваш API ключ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" @onclick="CloseApiKeyModal"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(_apiKey))
+                    {
+                        <div class="mb-3 d-flex align-items-center">
+                            <label for="apiKey" class="form-label me-2">API ключ:</label>
+                            <InputText id="apiKey" class="form-control flex-grow-1" @bind-Value="_apiKey" ReadOnly/>
+                            <button class="btn btn-outline-secondary ms-2" @onclick="CopyToClipboard">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>API ключ не найден.</p>
+                    }
+                    @if (!string.IsNullOrEmpty(_apiKeyRenewalError))
+                    {
+                        <div class="text-danger mt-2">@_apiKeyRenewalError</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseApiKeyModal">Закрыть</button>
+                    <button type="button" class="btn btn-warning" @onclick="UpdateApiKey">Обновить ключ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 @code {
     private UserModel _user = new();
-    
+    private bool _showEditProfileModal = false;
+    private bool _showApiKeyModal = false;
+    private string _newUsername;
+    private string _newPassword;
+    private string _editProfileError;
+    private string _apiKey;
+    private string _apiKeyRenewalError;
+
     protected override async Task OnInitializedAsync()
     {
-        var user = await LocalStorageService.GetItem<User>("user");
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        await GetUser();
+    }
 
-        var response = await HttpClient.GetAsync("api/v1/users/" + user.UserId);
-        var content = await response.Content.ReadAsStringAsync();
-        if (response.IsSuccessStatusCode)
+    private async Task GetUser()
+    {
+        var user = await LocalStorageService.GetItem<User>("user");
+        if (user != null)
         {
-            _user = JsonSerializer.Deserialize<UserModel>(content);
-        }
-        else
-        {
-            Console.WriteLine(content);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await HttpClient.GetAsync($"api/v1/users/{user.UserId}");
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                _user = JsonSerializer.Deserialize<UserModel>(content);
+            }
+            else
+            {
+                Console.WriteLine(content);
+            }
         }
     }
-    
-    public class UserModel
+
+    private void OpenEditProfileModal()
     {
-        [JsonPropertyName("id")] public Guid Id { get; set; }
+        _newUsername = _user.Username;
+        _newPassword = "";
+        _editProfileError = "";
+        _showEditProfileModal = true;
+    }
 
-        [JsonPropertyName("telegramUserId")] public string? TelegramUserId { get; set; }
+    private void CloseEditProfileModal()
+    {
+        _showEditProfileModal = false;
+    }
 
-        [JsonPropertyName("username")] public string Username { get; set; }
+    private async Task UpdateProfile()
+    {
+        _editProfileError = "";
+        var user = await LocalStorageService.GetItem<User>("user");
+        if (user != null)
+        {
+            var updateUserRequest = new UpdateUserRequest(user.UserId, _newUsername, _newPassword);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await HttpClient.PutAsJsonAsync("api/v1/users", updateUserRequest);
+            var content = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                _showEditProfileModal = false;
+                await GetUser();
+            }
+            else
+            {
+                var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(content);
+                _editProfileError = errorResponse?.Message ?? "Произошла ошибка при обновлении профиля.";
+            }
+        }
+    }
 
-        [JsonPropertyName("passwordHash")] public string PasswordHash { get; set; }
+    private async Task OpenApiKeyModal()
+    {
+        _apiKey = "";
+        _apiKeyRenewalError = "";
+        _showApiKeyModal = true;
+        await GetApiKey();
+    }
 
-        [JsonPropertyName("passwordSalt")] public string PasswordSalt { get; set; }
+    private void CloseApiKeyModal()
+    {
+        _showApiKeyModal = false;
+    }
 
-        [JsonPropertyName("transactions")] public List<Transaction> Transactions { get; set; }
+    private async Task GetApiKey()
+    {
+        var user = await LocalStorageService.GetItem<User>("user");
+        if (user != null)
+        {
+            var getApiKeyRequest = new GetApiKeyRequest(user.UserId);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await HttpClient.PostAsJsonAsync("api/v1/users/GetApiKey", getApiKeyRequest);
+            var content = await response.Content.ReadAsStringAsync();
+            _apiKey = content != "" ? content : "Ошибка обновления ключа";
+        }
+    }
 
-        [JsonPropertyName("categories")] public List<Category> Categories { get; set; }
+    private async Task UpdateApiKey()
+    {
+        _apiKeyRenewalError = "";
+        var user = await LocalStorageService.GetItem<User>("user");
+        if (user != null)
+        {
+            var updateApiKeyRequest = new UpdateApiKeyRequest(user.UserId);
+            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            var response = await HttpClient.PutAsJsonAsync("api/v1/users/UpdateApiKey", updateApiKeyRequest);
 
-        [JsonPropertyName("goals")] public List<Goal> Goals { get; set; }
+            if (response.IsSuccessStatusCode)
+            {
+                await GetApiKey();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task CopyToClipboard()
+    {
+        if (!string.IsNullOrEmpty(_apiKey))
+        {
+            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _apiKey);
+        }
     }
 }

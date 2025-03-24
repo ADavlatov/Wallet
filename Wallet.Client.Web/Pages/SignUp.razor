@@ -1,8 +1,12 @@
 ﻿@page "/signup"
+@using System.Net
+@using Wallet.Client.Web.Entities
 @using Wallet.Client.Web.Interfaces
 @using Wallet.Client.Web.Models
-@inject IAuthenticationService AuthenticationService
+@using Wallet.Client.Web.Models.Users
 @inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@inject ILocalStorageService LocalStorageService
 
 <PageTitle>Регистрация</PageTitle>
 
@@ -54,29 +58,40 @@
     private bool _loading;
     private string? _error;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (AuthenticationService.User != null)
+        var user = await LocalStorageService.GetItem<User>("user");
+        if (user != null)
         {
             NavigationManager.NavigateTo("");
         }
     }
 
-    private async void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         _loading = true;
-        try
+
+        var response = await HttpClient.PostAsJsonAsync("/api/v1/users/SignUp", _requestModel);
+        if (response.IsSuccessStatusCode)
         {
-            await AuthenticationService.SignUp(_requestModel.Username, _requestModel.Password);
+            await LocalStorageService.SetItem("user", await response.Content.ReadFromJsonAsync<User>());
             NavigationManager.NavigateTo("", true);
             StateHasChanged();
         }
-        catch (Exception ex)
+
+        if (response.StatusCode == HttpStatusCode.BadRequest)
         {
-            _error = ex.Message;
-            _loading = false;
-            StateHasChanged();
+            var errorResponse = await response.Content.ReadFromJsonAsync<List<ValidationError>>();
+            _error = string.Join(", ", errorResponse.Select(x => x.ErrorMessage));
         }
+        else
+        {
+            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+            _error = errorResponse.Message;
+        }
+
+        _loading = false;
+        StateHasChanged();
     }
 
 }

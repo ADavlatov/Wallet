@@ -15,12 +15,13 @@ public class NotificationsService(
 
         await notificationsRepository.AddNotification(notification);
         await notificationScheduler.ScheduleNotification(notification);
-        
+
         if (notificationDateTime > DateTimeOffset.UtcNow.AddDays(1))
         {
             await notificationScheduler.ScheduleNotification(notification, TimeSpan.FromDays(1),
                 $"{name} - за день");
         }
+
         if (notificationDateTime > DateTimeOffset.UtcNow.AddHours(1))
         {
             await notificationScheduler.ScheduleNotification(notification, TimeSpan.FromHours(1),

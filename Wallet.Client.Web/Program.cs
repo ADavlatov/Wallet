@@ -9,11 +9,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazorBootstrap();
 
-builder.Services
-    .AddScoped<IAuthenticationService, AuthenticationService>()
-    .AddScoped<IUserService, UserService>()
-    .AddScoped<IHttpService, HttpService>()
-    .AddScoped<ILocalStorageService, LocalStorageService>();
+builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 
 builder.Services.AddScoped(x => {
     var apiUrl = new Uri("http://localhost:5221");
@@ -22,8 +18,5 @@ builder.Services.AddScoped(x => {
 });
 
 var host = builder.Build();
-
-var authenticationService = host.Services.GetRequiredService<IAuthenticationService>();
-await authenticationService.Initialize();
 
 await host.RunAsync();

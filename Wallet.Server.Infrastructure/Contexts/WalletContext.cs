@@ -12,15 +12,9 @@ public sealed class WalletContext : DbContext
     public DbSet<Goal> Goals { get; init; }
     public DbSet<Notification> Notifications { get; init; }
 
-    public WalletContext()
+    public WalletContext(DbContextOptions<WalletContext> options) : base(options)
     {
         Database.EnsureCreated();
-    }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        //@TODO заменить на постгрес
-        optionsBuilder.UseSqlite("Data Source=wallet.db");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

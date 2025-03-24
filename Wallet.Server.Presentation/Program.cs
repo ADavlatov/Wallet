@@ -1,7 +1,4 @@
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
 using Wallet.Server.Infrastructure.Contexts;
 using Wallet.Server.Infrastructure.Options;
 using Wallet.Server.Presentation;
@@ -22,58 +19,18 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddDbContext<WalletContext>();
+builder.Services.AddDbContext<WalletContext>(o => o.UseSqlite("Data Source=wallet.db"));
+
 builder.Services.AddControllers(x => x.Filters.Add<GlobalExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
+
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.Section));
+builder.Services.Configure<UrlOptions>(builder.Configuration.GetSection(UrlOptions.Section));
 
-builder.Services.AddSwaggerGen(x =>
-{
-    x.SwaggerDoc("v1", new OpenApiInfo { Title = "Wallet", Version = "v1" });
-    // var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    // x.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-    x.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT"
-    });
-    x.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                },
-                Name = "Bearer",
-                In = ParameterLocation.Header
-            },
-            new List<string>()
-        }
-    });
-});
+builder.Services.ConfigureSwagger();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var jwtOptions = builder.Configuration.GetSection(JwtOptions.Section);
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtOptions["Issuer"],
-            ValidAudience = jwtOptions["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions["SecretKey"]!))
-        };
-    });
+builder.Services.ConfigureJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -87,12 +44,9 @@ app.UseEndpoints(endpoints => endpoints.MapControllers());
 
 app.Run();
 
-//:TODO выпилить хардкод
-//:TODO переделать репозитории
-//:TODO добавить изменение и удаление категорий и транзакций на клиенте
-//:TODO добавить лк на клиенте
-//:TODO добавить валидацию запросов
-//:TODO добавить нормальную обработку ошибок
-//:TODO добавить логгирование 
-//:TODO добавить xml документацию
+//:TODO пофиксить обновление пароля
+//:TODO почнинить переключение периодов на странице статистики
 //:TODO поправить рефреш на клиенте
+//:TODO убрать лишние поля в ответах
+//:TODO заменить период енамом
+//:TODO перейти на постгрес

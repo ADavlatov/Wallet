@@ -23,7 +23,6 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddQuartz(q =>
@@ -31,19 +30,15 @@ builder.Services.AddQuartz(q =>
     q.SchedulerId = "Notification-Scheduler";
     q.SchedulerName = "Notification Scheduler";
 
-    q.AddJob<NotificationJob>(opts => {
+    q.AddJob<NotificationJob>(opts =>
+    {
         opts.WithIdentity("NotificationJob");
         opts.StoreDurably();
     });
-
 });
 
-builder.Services.AddScoped<QuartzNotificationScheduler>(); 
-
-builder.Services.AddQuartzServer(options =>
-{
-    options.WaitForJobsToComplete = true;
-});
+builder.Services.AddScoped<QuartzNotificationScheduler>();
+builder.Services.AddQuartzServer(options => { options.WaitForJobsToComplete = true; });
 
 var app = builder.Build();
 

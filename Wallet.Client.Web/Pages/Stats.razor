@@ -5,9 +5,10 @@
 @using Wallet.Client.Web.Helpers
 @using Wallet.Client.Web.Interfaces
 @using Wallet.Client.Web.Models
+@using Wallet.Client.Web.Models.Stats
 @inject HttpClient Http
 @inject ILocalStorageService LocalStorageService
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 
 <h1 style="margin-bottom: 30px">Статистика</h1>
 
@@ -322,7 +323,7 @@
                 var fileBytes = await response.Content.ReadAsByteArrayAsync();
                 var fileName = $"report_{selectedPeriod}.xlsx";
 
-                await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, fileBytes);
+                await JsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, fileBytes);
             }
             else
             {

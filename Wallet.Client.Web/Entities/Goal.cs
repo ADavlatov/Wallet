@@ -8,7 +8,7 @@ public class Goal
     public string? Name { get; set; }
     public decimal TargetSum { get; set; }
     public decimal CurrentSum { get; set; }
-    public DateTime? Deadline { get; set; } 
+    public DateOnly? Deadline { get; set; } 
     public decimal AmountToAdd { get; set; } = 0;
     
     public int GetPercentage
