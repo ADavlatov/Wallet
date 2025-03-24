@@ -4,9 +4,9 @@ namespace Wallet.Client.Web.Entities;
 
 public class User
 {
-    public string UserId { get; set; }
-    public string AccessToken { get; set; }
-    public string RefreshToken { get; set; }
+    [JsonPropertyName("userId")] public string UserId { get; set; }
+    [JsonPropertyName("accessToken")] public string AccessToken { get; set; }
+    [JsonPropertyName("refreshToken")] public string RefreshToken { get; set; }
 }
 
 public class UserModel

@@ -10,12 +10,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
+builder.Services.AddScoped<RefreshTokenHandler>();
 
-builder.Services.AddScoped(x => {
-    var apiUrl = new Uri("http://localhost:5221");
-    var httpClient = new HttpClient { BaseAddress = apiUrl };
-    return httpClient;
-});
+builder.Services.AddHttpClient("MainClient", client => { client.BaseAddress = new Uri("http://localhost:5221"); })
+    .AddHttpMessageHandler<RefreshTokenHandler>();
 
 var host = builder.Build();
 

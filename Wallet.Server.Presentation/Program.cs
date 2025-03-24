@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using Wallet.Server.Application;
+using Wallet.Server.Infrastructure;
 using Wallet.Server.Infrastructure.Contexts;
 using Wallet.Server.Infrastructure.Options;
 using Wallet.Server.Presentation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-Wallet.Server.Infrastructure.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
-Wallet.Server.Application.DependencyInjectionExtensions.ConfigureDependencies(builder.Services);
+builder.Services.AddInfrastructureLayerServices();
+builder.Services.AddApplicationLayerServices();
 
 builder.Services.AddCors(options =>
 {

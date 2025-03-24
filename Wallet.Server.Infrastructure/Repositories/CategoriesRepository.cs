@@ -12,7 +12,11 @@ public class CategoriesRepository(WalletContext db, ILogger<CategoriesRepository
 {
     public async Task AddCategory(Category category, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на добавление категории. UserId: {category.UserId}, Name: {category.Name}, Type: {category.Type}");
+        logger.LogInformation("Запрос на добавление категории. " +
+                              "UserId: {UserId}, " +
+                              "Name: {Name}, " +
+                              "Type: {Type}", category.UserId, category.Name, category.Type);
+
         var isExists = await db.Categories
             .AnyAsync(x => x.UserId == category.UserId && x.Name == category.Name && x.Type == category.Type,
                 cancellationToken);
@@ -28,7 +32,7 @@ public class CategoriesRepository(WalletContext db, ILogger<CategoriesRepository
 
     public async Task<List<Category>> GetAllCategoriesByUserId(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение всех категорий пользователя. UserId: {userId}");
+        logger.LogInformation("Запрос на получение всех категорий пользователя. UserId: {UserId}", userId);
         var categories = await db.Categories
             .Where(x => x.UserId == userId)
             .ToListAsync(cancellationToken);
@@ -39,7 +43,9 @@ public class CategoriesRepository(WalletContext db, ILogger<CategoriesRepository
     public async Task<List<Category>> GetAllCategoriesByTransactionType(Guid userId, TransactionTypes transactionType,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение категорий по типу транзакции. UserId: {userId}, TransactionType: {transactionType}");
+        logger.LogInformation("Запрос на получение категорий по типу транзакции." +
+                              " UserId: {UserId}, TransactionType: {TransactionType}", userId, transactionType);
+
         var categories = await db.Categories
             .Where(x => x.UserId == userId && x.Type == transactionType)
             .ToListAsync(cancellationToken);
@@ -49,7 +55,7 @@ public class CategoriesRepository(WalletContext db, ILogger<CategoriesRepository
 
     public async Task<Category> GetCategoryById(Guid id, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение категории по ID. Id: {id}");
+        logger.LogInformation("Запрос на получение категории по ID. Id: {Id}", id);
         var category = await db.Categories
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 
@@ -63,7 +69,7 @@ public class CategoriesRepository(WalletContext db, ILogger<CategoriesRepository
 
     public async Task<Category> GetCategoryByName(Guid userId, string name, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение категории по имени. UserId: {userId}, Name: {name}");
+        logger.LogInformation("Запрос на получение категории по имени. UserId: {UserId}, Name: {Name}", userId, name);
         var category = await db.Categories
             .FirstOrDefaultAsync(x => x.UserId == userId && x.Name == name, cancellationToken);
 
@@ -77,14 +83,15 @@ public class CategoriesRepository(WalletContext db, ILogger<CategoriesRepository
 
     public async Task UpdateCategory(Category updatedCategory, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление категории. Id: {updatedCategory.Id}, Name: {updatedCategory.Name}, Type: {updatedCategory.Type}");
+        logger.LogInformation("Запрос на обновление категории. Id: {Id}, Name: {Name}, Type: {Type}",
+            updatedCategory.Id, updatedCategory.Name, updatedCategory.Type);
         db.Categories.Update(updatedCategory);
         await db.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteCategory(Category category, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на удаление категории. Id: {category.Id}");
+        logger.LogInformation("Запрос на удаление категории. Id: {Id}", category.Id);
         db.Categories.Remove(category);
         await db.SaveChangesAsync(cancellationToken);
     }

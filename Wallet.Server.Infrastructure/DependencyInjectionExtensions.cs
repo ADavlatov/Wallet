@@ -7,7 +7,7 @@ namespace Wallet.Server.Infrastructure;
 
 public static class DependencyInjectionExtensions
 {
-    public static void ConfigureDependencies(this IServiceCollection services)
+    public static void AddInfrastructureLayerServices(this IServiceCollection services)
     {
         services.AddTransient<ICategoriesRepository, CategoriesRepository>();
         services.AddTransient<IGoalsRepository, GoalsRepository>();

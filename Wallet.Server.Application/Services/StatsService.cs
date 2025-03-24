@@ -1,6 +1,9 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Extensions.Logging;
 using Wallet.Server.Domain.DTOs;
+using Wallet.Server.Domain.Entities;
 using Wallet.Server.Domain.Enums;
 using Wallet.Server.Domain.Interfaces.Repositories;
 using Wallet.Server.Domain.Interfaces.Services;
@@ -12,11 +15,64 @@ public class StatsService(ITransactionsRepository transactionsRepository, ILogge
 {
     public async Task<byte[]> GenerateExcelFile(Guid userId, string period, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на генерацию Excel файла. UserId: {userId}, Period: {period}");
+        logger.LogInformation("Запрос на генерацию Excel файла. UserId: {UserId}, Period: {Period}", userId, period);
         var periodDates = PeriodHelper.GetPeriodDates(period, logger);
-        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate,
-            periodDates.EndDate, cancellationToken);
+        var transactions = await transactionsRepository
+            .GetTransactionsByPeriod(userId, periodDates.StartDate, periodDates.EndDate, cancellationToken);
 
+        var workbook = CreateWorkbook(transactions);
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        var content = stream.ToArray();
+
+        return content;
+    }
+
+    public async Task<LineChartDto> GetLineChartData(Guid userId, string period, CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Запрос на получение данных для линейного графика. " +
+                              "UserId: {UserId}, Period: {Period}", userId, period);
+
+        var periodDates = PeriodHelper.GetPeriodDates(period, logger);
+        var transactions = await transactionsRepository
+            .GetTransactionsByPeriod(userId, periodDates.StartDate, periodDates.EndDate, cancellationToken);
+
+        decimal[] incomes = new decimal[periodDates.PeriodLength];
+        decimal[] expenses = new decimal[periodDates.PeriodLength];
+
+        for (int i = 0; i < periodDates.PeriodLength; i++)
+        {
+            var currentDate = periodDates.StartDate.AddDays(i);
+            incomes[i] = transactions
+                .Where(t => t.Type == TransactionTypes.Income && t.Date == currentDate)
+                .Sum(t => t.Amount);
+
+            expenses[i] = transactions
+                .Where(t => t.Type == TransactionTypes.Expense && t.Date == currentDate)
+                .Sum(t => t.Amount);
+        }
+
+        return new LineChartDto(incomes, expenses);
+    }
+
+    public async Task<Dictionary<string, decimal>> GetPieChartData(Guid userId, TransactionTypes type, string period,
+        CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Запрос на получение данных для кругового графика. " +
+                              "UserId: {UserId}, Type: {Type}, Period: {Period}", userId, type, period);
+
+        var periodDates = PeriodHelper.GetPeriodDates(period, logger);
+        var expenses = await transactionsRepository
+            .GetTransactionsByTypeAndPeriod(userId, type, periodDates.StartDate, periodDates.EndDate,
+                cancellationToken);
+
+        return expenses
+            .GroupBy(e => e.Category)
+            .ToDictionary(g => g.Key.Name, g => g.Sum(e => e.Amount));
+    }
+
+    private XLWorkbook CreateWorkbook(List<Transaction> transactions)
+    {
         using var workbook = new XLWorkbook();
         var worksheet = workbook.Worksheets.Add("Доходы");
 
@@ -76,48 +132,6 @@ public class StatsService(ITransactionsRepository transactionsRepository, ILogge
         worksheet.Columns().AdjustToContents();
         worksheet.Columns().AdjustToContents();
 
-        using var stream = new MemoryStream();
-        workbook.SaveAs(stream);
-        var content = stream.ToArray();
-        return content;
-    }
-
-    public async Task<LineChartDto> GetLineChartData(Guid userId, string period, CancellationToken cancellationToken)
-    {
-        logger.LogInformation($"Запрос на получение данных для линейного графика. UserId: {userId}, Period: {period}");
-        var periodDates = PeriodHelper.GetPeriodDates(period, logger);
-        var transactions = await transactionsRepository.GetTransactionsByPeriod(userId, periodDates.StartDate,
-            periodDates.EndDate, cancellationToken);
-
-        decimal[] incomes = new decimal[periodDates.PeriodLength];
-        decimal[] expenses = new decimal[periodDates.PeriodLength];
-
-        for (int i = 0; i < periodDates.PeriodLength; i++)
-        {
-            var currentDate = periodDates.StartDate.AddDays(i);
-            incomes[i] = transactions
-                .Where(t => t.Type == TransactionTypes.Income && t.Date == currentDate)
-                .Sum(t => t.Amount);
-
-            expenses[i] = transactions
-                .Where(t => t.Type == TransactionTypes.Expense && t.Date == currentDate)
-                .Sum(t => t.Amount);
-        }
-
-        return new LineChartDto(incomes, expenses);
-    }
-
-    public async Task<Dictionary<string, decimal>> GetPieChartData(Guid userId, TransactionTypes type, string period,
-        CancellationToken cancellationToken)
-    {
-        logger.LogInformation(
-            $"Запрос на получение данных для кругового графика. UserId: {userId}, Type: {type}, Period: {period}");
-        var periodDates = PeriodHelper.GetPeriodDates(period, logger);
-        var expenses = await transactionsRepository.GetTransactionsByTypeAndPeriod(userId, type, periodDates.StartDate,
-            periodDates.EndDate, cancellationToken);
-
-        return expenses
-            .GroupBy(e => e.Category)
-            .ToDictionary(g => g.Key.Name, g => g.Sum(e => e.Amount));
+        return workbook;
     }
 }

@@ -9,33 +9,23 @@
     </div>
 
     <main>
-        @* @if (user != null) *@
-        @* { *@
-        @*     <div class="top-row px-4" style="background-color: #1c301c; border-bottom: none"> *@
-        @*         <a style="color: #fff" href="account">Аккаунт</a> *@
-        @*         <a style="color: #fff" href="signOut">Выход</a> *@
-        @*     </div> *@
-        @* } *@
-        @* else *@
-        @* { *@
-        @*     <div class="top-row px-4" style="background-color: #1c301c; border-bottom: none"> *@
-        @*         <a style="color: #fff" href="signIn">Вход</a> *@
-        @*         <a style="color: #fff" href="signUp">Регистрация</a> *@
-        @*     </div> *@
-        @* } *@
         @if (user != null)
         {
-        <div class="top-row px-4">
-            <a style="color: #000" href="account">Аккаунт</a>
-            <a style="color: #000" href="signOut">Выход</a>
-        </div>
+            <div class="top-row px-4" style="background-color: #1E272C; border-bottom: none">
+                <div style="margin-right: 1.5rem">
+                    <a style="color: #fff" href="account">Аккаунт</a>
+                    <a style="color: #fff" href="signOut">Выход</a>
+                </div>
+            </div>
         }
         else
         {
-        <div class="top-row px-4">
-            <a style="color: #000" href="signIn">Вход</a>
-            <a style="color: #000" href="signUp">Регистрация</a>
-        </div>
+            <div class="top-row px-4" style="background-color: #1E272C; border-bottom: none">
+                <div style="margin-right: 1.5rem">
+                    <a style="color: #fff" href="signIn">Вход</a>
+                    <a style="color: #fff" href="signUp">Регистрация</a>
+                </div>
+            </div>
         }
         <article class="content px-4">
             @Body

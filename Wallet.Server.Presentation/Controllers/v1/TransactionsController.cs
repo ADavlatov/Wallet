@@ -28,20 +28,35 @@ public class TransactionsController(
     public async Task<IActionResult> AddTransaction([FromBody] AddTransactionRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на добавление транзакции. UserId: {request.UserId}, CategoryId: {request.CategoryId}, Type: {request.Type}, Amount: {request.Amount}, Date: {request.Date}.");
+        logger.LogInformation("Начало запроса на добавление транзакции. " +
+                              "UserId: {UserId}, " +
+                              "CategoryId: {CategoryId}, " +
+                              "Type: {Type}, " +
+                              "Amount: {Amount}, " +
+                              "Date: {Date}.", 
+            request.UserId, request.CategoryId, request.Type, request.Amount, request.Date);
+        
         var validationResult = await new AddTransactionRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            logger.LogWarning(
-                $"Ошибка валидации при добавлении транзакции. UserId: {request.UserId}, CategoryId: {request.CategoryId}, Type: {request.Type}, Amount: {request.Amount}, Date: {request.Date}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            logger.LogWarning("Ошибка валидации при добавлении транзакции. " +
+                              "UserId: {request.UserId}, " +
+                              "CategoryId: {request.CategoryId}, " +
+                              "Type: {request.Type}, " +
+                              "Amount: {request.Amount}, " +
+                              "Date: {request.Date}.", 
+                request.UserId, request.CategoryId, request.Type, request.Amount, request.Date);
+            
             return BadRequest(validationResult.Errors);
         }
 
-        await transactionsService.AddTransaction(request.UserId, request.CategoryId, request.Name, request.Amount,
+        await transactionsService
+            .AddTransaction(request.UserId, request.CategoryId, request.Name, request.Amount,
             request.Date, request.Type, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на добавление транзакции завершен. UserId: {request.UserId}, CategoryId: {request.CategoryId}.");
+        
+        logger.LogInformation("Запрос на добавление транзакции завершен. " +
+                              "UserId: {request.UserId}, " +
+                              "CategoryId: {request.CategoryId}.", request.UserId, request.CategoryId);
         return Ok();
     }
 
@@ -55,11 +70,18 @@ public class TransactionsController(
     public async Task<IActionResult> GetTransactionsByType([FromBody] GetTransactionsByTypeRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на получение транзакций по типу. UserId: {request.UserId}, Type: {request.Type}.");
-        var result = await transactionsService.GetTransactionsByType(request.UserId, request.Type, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на получение транзакций по типу завершен. UserId: {request.UserId}, Type: {request.Type}. Количество транзакций: {result.Count}.");
+        logger.LogInformation("Начало запроса на получение транзакций по типу. " +
+                              "UserId: {request.UserId}, " +
+                              "Type: {request.Type}.", request.UserId, request.Type);
+        
+        var result = await transactionsService
+            .GetTransactionsByType(request.UserId, request.Type, cancellationToken);
+        
+        logger.LogInformation("Запрос на получение транзакций по типу завершен. " +
+                              "UserId: {UserId}, " +
+                              "Type: {Type}. " +
+                              "Количество транзакций: {Count}.", request.UserId, request.Type, result.Count);
+        
         return Ok(result);
     }
 
@@ -73,11 +95,16 @@ public class TransactionsController(
     public async Task<IActionResult> GetTransactionsByCategory([FromBody] GetTransactionsByCategoryRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на получение транзакций по категории. CategoryId: {request.CategoryId}.");
-        var result = await transactionsService.GetTransactionsByCategory(request.CategoryId, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на получение транзакций по категории завершен. CategoryId: {request.CategoryId}. Количество транзакций: {result.Count}.");
+        logger.LogInformation("Начало запроса на получение транзакций по категории. " +
+                              "CategoryId: {CategoryId}.", request.CategoryId);
+        
+        var result = await transactionsService
+            .GetTransactionsByCategory(request.CategoryId, cancellationToken);
+        
+        logger.LogInformation("Запрос на получение транзакций по категории завершен. " +
+                              "CategoryId: {CategoryId}. " +
+                              "Количество транзакций: {Count}.", request.CategoryId, result.Count);
+        
         return Ok(result);
     }
 
@@ -90,9 +117,14 @@ public class TransactionsController(
     [HttpGet("{transactionId}")]
     public async Task<IActionResult> GetTransactionById(Guid transactionId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на получение транзакции по ID. TransactionId: {transactionId}.");
+        logger.LogInformation("Начало запроса на получение транзакции по ID. " +
+                              "TransactionId: {TransactionId}.", transactionId);
+        
         var result = await transactionsService.GetTransactionById(transactionId, cancellationToken);
-        logger.LogInformation($"Запрос на получение транзакции по ID завершен. TransactionId: {transactionId}.");
+        
+        logger.LogInformation("Запрос на получение транзакции по ID завершен. " +
+                              "TransactionId: {TransactionId}.", transactionId);
+        
         return Ok(result);
     }
 
@@ -106,21 +138,25 @@ public class TransactionsController(
     public async Task<IActionResult> UpdateTransaction([FromBody] UpdateTransactionRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на обновление транзакции. TransactionId: {request.TransactionId}.");
+        logger.LogInformation("Начало запроса на обновление транзакции. " +
+                              "TransactionId: {TransactionId}.", request.TransactionId);
 
 
         var validationResult = await new UpdateTransactionRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            logger.LogWarning(
-                $"Ошибка валидации при обновлении транзакции. TransactionId: {request.TransactionId}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            logger.LogWarning("Ошибка валидации при обновлении транзакции. " +
+                              "TransactionId: {request.TransactionId}.", request.TransactionId);
+            
             return BadRequest(validationResult.Errors);
         }
 
         await transactionsService.UpdateTransaction(request.TransactionId, request.CategoryId, request.Name,
-            request.Amount, request.Date,
-            cancellationToken);
-        logger.LogInformation($"Запрос на обновление транзакции завершен. TransactionId: {request.TransactionId}.");
+            request.Amount, request.Date, cancellationToken);
+        
+        logger.LogInformation("Запрос на обновление транзакции завершен. " +
+                              "TransactionId: {TransactionId}.", request.TransactionId);
+        
         return Ok();
     }
 
@@ -133,9 +169,14 @@ public class TransactionsController(
     [HttpDelete("{transactionId}")]
     public async Task<IActionResult> DeleteTransaction(Guid transactionId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на удаление транзакции. TransactionId: {transactionId}.");
+        logger.LogInformation("Начало запроса на удаление транзакции. " +
+                              "TransactionId: {TransactionId}.", transactionId);
+        
         await transactionsService.DeleteTransaction(transactionId, cancellationToken);
-        logger.LogInformation($"Запрос на удаление транзакции завершен. TransactionId: {transactionId}.");
+        
+        logger.LogInformation("Запрос на удаление транзакции завершен. " +
+                              "TransactionId: {TransactionId}.", transactionId);
+        
         return Ok();
     }
 }

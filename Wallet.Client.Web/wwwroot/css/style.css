@@ -1,26 +1,275 @@
-﻿/*.nav-scrollable {*/
-/*    background-color: #264226;*/
-/*}*/
+﻿.nav-scrollable {
+    background: #19301a;
+}
 
-/*.page {*/
-/*    background-color: #111211;*/
-/*}*/
+.title-color {
+    background-color: #19301a;
+}
 
-/*.title-color {*/
-/*    background-color: #264226;*/
-/*}*/
+body {
+    background-color: #12181B;
+    color: #F8F9FA;
+}
 
-/*.card {*/
-/*    color: #fff;*/
-/*    background-color: #111211;*/
-/*    border-color: #fff;*/
-/*}*/
+a {
+    color: #2E8B57; /* Основной темно-зеленый для ссылок */
+}
 
-/*.content {*/
-/*    color: #fff;*/
-/*}*/
+a:hover {
+    color: #3CB371; /* Более светлый темно-зеленый при наведении */
+}
+.navbar {
+    background-color: #1E272C;
+}
 
-/*.btn-primary {*/
-/*    background-color: #378237;*/
-/*    border-color: #fff;*/
-/*}*/
+.navbar-brand {
+    color: #F8F9FA;
+}
+
+.navbar-nav .nav-link {
+    color: #ADB5BD;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: #2E8B57;
+}
+
+.navbar-toggler {
+    border-color: #ADB5BD;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(173,181,189, 0.5)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e"); /* Измените цвет иконки бургер-меню */
+}
+.card {
+    background-color: #1E272C;
+    border: 1px solid #343A40; /* Темно-серый кант */
+    color: #F8F9FA;
+}
+
+.card-header {
+    background-color: #2C3338; /* Еще более темный оттенок для заголовка */
+    border-bottom: 1px solid #343A40;
+    color: #F8F9FA;
+}
+
+.card-body {
+    color: #ADB5BD;
+}
+
+.card-footer {
+    background-color: #2C3338;
+    border-top: 1px solid #343A40;
+    color: #ADB5BD;
+}
+.btn-primary {
+    background-color: #2E8B57;
+    border-color: #2E8B57;
+    color: #F8F9FA;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #3CB371 !important;
+    border-color: #3CB371 !important;
+    color: #F8F9FA !important;
+}
+
+.btn-secondary {
+    background-color: #343A40; /* Темно-серый для вторичных кнопок */
+    border-color: #343A40;
+    color: #F8F9FA;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus,
+.btn-secondary:active {
+    background-color: #495057 !important;
+    border-color: #495057 !important;
+    color: #F8F9FA !important;
+}
+
+.form-select{
+    background-color: #2C3338;
+    border: 1px solid #343A40;
+    color: #F8F9FA;
+}
+
+.form-select:focus{
+    background-color: #343A40;
+    border-color: #2E8B57; /* Темно-зеленый при фокусе */
+    box-shadow: 0 0 0 0.2rem rgba(46, 139, 87, 0.25); /* Легкая темно-зеленая тень при фокусе */
+    color: #F8F9FA;
+}
+
+.form-control {
+    background-color: #2C3338;
+    border: 1px solid #343A40;
+    color: #F8F9FA;
+}
+
+.form-control:focus {
+    background-color: #343A40;
+    border-color: #2E8B57; /* Темно-зеленый при фокусе */
+    box-shadow: 0 0 0 0.2rem rgba(46, 139, 87, 0.25); /* Легкая темно-зеленая тень при фокусе */
+    color: #F8F9FA;
+}
+
+.form-label {
+    color: #ADB5BD;
+}
+
+.form-text {
+    color: #ADB5BD;
+}
+
+.modal-content {
+    background-color: #1E272C;
+    color: #F8F9FA;
+    border: 1px solid #343A40;
+}
+
+.modal-header {
+    background-color: #2C3338;
+    border-bottom: 1px solid #343A40;
+    color: #F8F9FA;
+}
+
+.modal-body {
+    color: #ADB5BD;
+}
+
+.modal-footer {
+    background-color: #2C3338;
+    border-top: 1px solid #343A40;
+}
+
+.table {
+    color: #F8F9FA;
+}
+
+.table thead th {
+    border-bottom-color: #343A40;
+}
+
+.table tbody td {
+    border-bottom-color: #343A40;
+}
+
+.table-dark {
+    --bs-table-bg: #1E272C;
+    --bs-table-striped-bg: #2C3338;
+    --bs-table-striped-color: #F8F9FA;
+    --bs-table-active-bg: #343A40;
+    --bs-table-active-color: #F8F9FA;
+    --bs-table-hover-bg: #343A40;
+    --bs-table-hover-color: #F8F9FA;
+    color: #F8F9FA;
+    border-color: #343A40;
+}
+
+/* Для браузеров на основе WebKit (Chrome, Safari и др.) */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.list-group-item{
+    background-color: #343A40;
+    color: #F8F9FA;
+    border-color: #2E8B57;
+}
+
+.hero {
+    background-image: linear-gradient(45deg, rgba(46, 139, 87, 0.1) 25%, transparent 25%, transparent 50%, rgba(46, 139, 87, 0.1) 50%, rgba(46, 139, 87, 0.1) 75%, transparent 75%, transparent);
+    background-size: 20px 20px;
+    background-color: #1E272C !important;
+    text-align: center;
+    padding-top: 3rem;
+    padding-bottom: 3rem; 
+    margin-bottom: 0 !important; 
+}
+
+.hero .container {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.features {
+    background-color: #12181B;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-bottom: 0 !important;
+}
+
+.features .container {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.call-to-action {
+    background-color: #1E272C !important;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-bottom: 0 !important;
+}
+
+.call-to-action .container {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.bg-light {
+    background-color: #1E272C !important;
+}
+
+.text-light {
+    color: #F8F9FA !important;
+}
+
+.bg-secondary {
+    background-color: #2C3338 !important;
+}
+
+.text-success {
+    color: #2E8B57 !important;
+}
+
+.footer {
+    background-color: #12181B !important;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    margin-bottom: 0 !important;
+}
+
+.footer .container {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.content {
+    padding: 0 !important;
+    display: grid;
+    grid-template-rows: auto 1fr auto; /* Автоматическая высота для header и footer, оставшееся пространство для контента */
+    min-height: 100vh;
+}
+
+@media (min-width: 641px) {
+    .top-row[b-bl7k5hbnkw], article[b-bl7k5hbnkw] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+@media (min-width: 641px) {
+    .custom-container {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}

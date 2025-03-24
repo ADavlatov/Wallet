@@ -3,57 +3,56 @@
 @using Wallet.Client.Web.Entities
 @using Wallet.Client.Web.Interfaces
 @using Wallet.Client.Web.Models.Notifications
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject ILocalStorageService LocalStorageService
 
 <PageTitle>Напоминания</PageTitle>
 
-
-<h1 style="margin-bottom: 30px">Напоминания</h1>
-
-<div class="card mb-3">
-    <div class="card-body">
-        <h5 class="card-title">Добавить напоминание</h5>
-        <div class="mb-3">
-            <label for="title" class="form-label">Название</label>
-            <input type="text" class="form-control" id="title" @bind="newNotification.Name">
+<div class="custom-container">
+    <h1 style="margin: 30px 0">Напоминания</h1>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Добавить напоминание</h5>
+            <div class="mb-3">
+                <label for="title" class="form-label">Название</label>
+                <input type="text" class="form-control" id="title" @bind="newNotification.Name">
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание</label>
+                <textarea class="form-control" id="description" rows="3" @bind="newNotification.Description"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Дата</label>
+                <input type="date" class="form-control" id="date" @bind="newNotification.DateOnly"/>
+            </div>
+            <div class="mb-3">
+                <label for="time" class="form-label">Время</label>
+                <input type="time" class="form-control" id="time" @bind="newNotification.TimeOnly"/>
+            </div>
+            <button class="btn btn-primary" @onclick="AddNotification">Добавить</button>
         </div>
-        <div class="mb-3">
-            <label for="description" class="form-label">Описание</label>
-            <textarea class="form-control" id="description" rows="3" @bind="newNotification.Description"></textarea>
-        </div>
-        <div class="mb-3">
-            <label for="date" class="form-label">Дата</label>
-            <input type="date" class="form-control" id="date" @bind="newNotification.DateOnly"/>
-        </div>
-        <div class="mb-3">
-            <label for="time" class="form-label">Время</label>
-            <input type="time" class="form-control" id="time" @bind="newNotification.TimeOnly"/>
-        </div>
-        <button class="btn btn-primary" @onclick="AddNotification">Добавить</button>
     </div>
+    @if (notifications.Any())
+    {
+        <h2>Список напоминаний</h2>
+        <div style="max-height: 500px; overflow-y: auto; border: 1px solid #2E8B57; border-radius: 5px;">
+            <ul class="list-group">
+                @foreach (var reminder in notifications)
+                {
+                    <li class="list-group-item">
+                        <h5>@reminder.Name</h5>
+                        <p>@reminder.Description</p>
+                        <small>Дата и время: @reminder.DateTime.ToString("dd.MM.yyyy HH:mm")</small>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <p>Нет добавленных напоминаний.</p>
+    }
 </div>
-
-@if (notifications.Any())
-{
-    <h2>Список напоминаний</h2>
-    <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ccc; border-radius: 5px;">
-        <ul class="list-group">
-            @foreach (var reminder in notifications)
-            {
-                <li class="list-group-item">
-                    <h5>@reminder.Name</h5>
-                    <p>@reminder.Description</p>
-                    <small>Дата и время: @reminder.DateTime.ToString("dd.MM.yyyy HH:mm")</small>
-                </li>
-            }
-        </ul>
-    </div>
-}
-else
-{
-    <p>Нет добавленных напоминаний.</p>
-}
 
 
 @code {
@@ -71,11 +70,12 @@ else
         if (!string.IsNullOrWhiteSpace(newNotification.Name) && newNotification.DateTime > DateTime.Now)
         {
             var user = await LocalStorageService.GetItem<User>("user");
+            var httpClient = HttpClientFactory.CreateClient("MainClient");
             var addNotificationRequest = new AddNotificationRequest(user.UserId, newNotification.Name, newNotification.Description, newNotification.DateTime);
-            HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
 
             Console.WriteLine("asdasd");
-            var response = await HttpClient.PostAsJsonAsync("/api/v1/notifications/AddNotification", addNotificationRequest);
+            var response = await httpClient.PostAsJsonAsync("/api/v1/notifications/AddNotification", addNotificationRequest);
             if (response.IsSuccessStatusCode)
             {
                 Console.WriteLine("qweqwe");
@@ -93,8 +93,9 @@ else
     private async Task GetNotifications()
     {
         var user = await LocalStorageService.GetItem<User>("user");
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
-        notifications = await HttpClient.GetFromJsonAsync<List<Notification>>($"/api/v1/notifications/{user.UserId}");
+        var httpClient = HttpClientFactory.CreateClient("MainClient");
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", user.AccessToken);
+        notifications = await httpClient.GetFromJsonAsync<List<Notification>>($"/api/v1/notifications/{user.UserId}");
         StateHasChanged();
     }
 

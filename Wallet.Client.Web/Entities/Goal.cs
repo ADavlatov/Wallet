@@ -10,6 +10,7 @@ public class Goal
     public decimal CurrentSum { get; set; }
     public DateOnly? Deadline { get; set; } 
     public decimal AmountToAdd { get; set; } = 0;
+    public string AddSumError { get; set; }
     
     public int GetPercentage
     {

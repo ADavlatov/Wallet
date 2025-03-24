@@ -7,7 +7,7 @@ namespace Wallet.Quartz.Application;
 
 public static class DependencyInjectionExtensions
 {
-    public static void ConfigureDependencies(this IServiceCollection services)
+    public static void AddApplicationLayerServices(this IServiceCollection services)
     {
         services.AddScoped<TelegramMessageSender>();
         services.AddTransient<INotificationsService, NotificationsService>();

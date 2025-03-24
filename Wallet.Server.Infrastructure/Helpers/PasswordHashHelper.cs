@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Microsoft.Extensions.Logging;
+using Wallet.Server.Domain.DTOs;
 
 namespace Wallet.Server.Infrastructure.Helpers;
 
@@ -21,7 +22,7 @@ public static class PasswordHashHelper
         return hash.SequenceEqual(expectedHash);
     }
 
-    public static (byte[] Hash, byte[] Salt) HashPassword(string password, ILogger logger, byte[]? salt = null)
+    public static PasswordDto HashPassword(string password, ILogger logger, byte[]? salt = null)
     {
         logger.LogInformation("Запрос на хеширование пароля.");
         Rfc2898DeriveBytes rfc2898DeriveBytes;
@@ -36,9 +37,7 @@ public static class PasswordHashHelper
             rfc2898DeriveBytes = new Rfc2898DeriveBytes(password, SaltLength, IterationCount, HashAlgorithmName.SHA1);
         }
 
-        var hashBytes = rfc2898DeriveBytes.GetBytes(20);
-        var saltBytes = salt ?? rfc2898DeriveBytes.Salt;
         logger.LogInformation("Хеширование пароля завершено.");
-        return (hashBytes, saltBytes);
+        return new PasswordDto(rfc2898DeriveBytes.GetBytes(20), salt ?? rfc2898DeriveBytes.Salt);
     }
 }

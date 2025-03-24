@@ -17,17 +17,17 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
 {
     public async Task<AuthDto> SignUp(string username, string password, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на регистрацию пользователя. Username: {username}");
+        logger.LogInformation("Запрос на регистрацию пользователя. Username: {Username}", username);
         var (passwordHash, passwordSalt) = PasswordHashHelper.HashPassword(password, logger);
         var user = new User(username, passwordHash, passwordSalt, ApiKeyGenerator.GenerateApiKey(logger));
         var addedUser = await usersRepository.AddUser(user, cancellationToken);
 
-        return TokenHelper.CreateTokensPair(options, addedUser.Id.ToString(), logger);
+        return TokenHelper.CreateTokensPair(options, addedUser.Id, logger);
     }
 
     public async Task<AuthDto> SignIn(string username, string password, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на вход пользователя. Username: {username}");
+        logger.LogInformation("Запрос на вход пользователя. Username: {Username}", username);
         var user = await usersRepository.GetUserByUsername(username, cancellationToken);
 
         if (!PasswordHashHelper.ValidateHash(password, user.PasswordSalt, user.PasswordHash, logger))
@@ -35,10 +35,10 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
             throw new AuthenticationException("Wrong password");
         }
 
-        return TokenHelper.CreateTokensPair(options, user.Id.ToString(), logger);
+        return TokenHelper.CreateTokensPair(options, user.Id, logger);
     }
 
-    public async Task<AuthDto> RefreshTokens(string refreshToken, CancellationToken cancellationToken)
+    public async Task<AuthDto> RefreshTokens(string refreshToken)
     {
         logger.LogInformation("Запрос на обновление токенов.");
         var token = await new JwtSecurityTokenHandler().ValidateTokenAsync(refreshToken,
@@ -55,35 +55,35 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
 
         if (!token.IsValid)
         {
-            logger.LogWarning($"Ошибка при валидации refresh token: {refreshToken}");
+            logger.LogWarning("Ошибка при валидации refresh token: {RefreshToken}", refreshToken);
             throw new AuthenticationException("Invalid refresh token");
         }
 
         var id = token.Claims.First().Value;
         if (!Guid.TryParse(id.ToString(), out var userId))
         {
-            logger.LogWarning($"Ошибка при валидации refresh token: {refreshToken}");
+            logger.LogWarning("Ошибка при валидации refresh token: {RefreshToken}", refreshToken);
             throw new AuthenticationException("Invalid refresh token");
         }
 
-        return TokenHelper.CreateTokensPair(options, userId.ToString(), logger);
+        return TokenHelper.CreateTokensPair(options, userId, logger);
     }
 
     public async Task<User> GetUserById(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение пользователя. UserId: {userId}");
+        logger.LogInformation("Запрос на получение пользователя. UserId: {UserId}", userId);
         return await usersRepository.GetUserById(userId, cancellationToken);
     }
 
     public async Task<User> GetUserByUsername(string username, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение пользователя. Username: {username}");
+        logger.LogInformation("Запрос на получение пользователя. Username: {Username}", username);
         return await usersRepository.GetUserByUsername(username, cancellationToken);
     }
 
     public async Task UpdateUser(Guid id, string? username, string? password, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление пользователя. Id: {id}, Username: {username}");
+        logger.LogInformation("Запрос на обновление пользователя. Id: {Id}, Username: {Username}", id, username);
         var user = await usersRepository.GetUserById(id, cancellationToken);
 
         user.Username = username ?? user.Username;
@@ -100,21 +100,21 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
 
     public async Task DeleteUser(Guid id, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на удаление пользователя. Id: {id}");
+        logger.LogInformation("Запрос на удаление пользователя. Id: {Id}", id);
         var user = await usersRepository.GetUserById(id, cancellationToken);
         await usersRepository.DeleteUser(user, cancellationToken);
     }
 
     public async Task<string> GetApiKey(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение API ключа. UserId: {userId}");
+        logger.LogInformation("Запрос на получение API ключа. UserId: {UserId}", userId);
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         return user.ApiKey;
     }
 
     public async Task UpdateApiKey(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление API ключа. UserId: {userId}");
+        logger.LogInformation("Запрос на обновление API ключа. UserId: {UserId}", userId);
         var user = await usersRepository.GetUserById(userId, cancellationToken);
         user.ApiKey = ApiKeyGenerator.GenerateApiKey(logger);
         await usersRepository.UpdateUser(user, cancellationToken);
@@ -122,8 +122,9 @@ public class UsersService(IUsersRepository usersRepository, IOptions<JwtOptions>
 
     public async Task ValidateApiKey(string apiKey, long telegramUserId, CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Запрос на валидацию API ключа для Telegram. ApiKey: {apiKey}, TelegramUserId: {telegramUserId}");
+        logger.LogInformation("Запрос на валидацию API ключа для Telegram. " +
+                              "ApiKey: {ApiKey}, TelegramUserId: {TelegramUserId}", apiKey, telegramUserId);
+
         var user = await usersRepository.GetUserByApiKey(apiKey, cancellationToken);
         user.TelegramUserId = telegramUserId;
         await usersRepository.UpdateUser(user, cancellationToken);

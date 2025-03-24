@@ -83,11 +83,11 @@ public class UsersServiceTests
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var authDto = TokenHelper.CreateTokensPair(_jwtOptionsMock.Object, userId.ToString(), _loggerMock.Object);
+        var authDto = TokenHelper.CreateTokensPair(_jwtOptionsMock.Object, userId, _loggerMock.Object);
         var refreshToken = authDto.RefreshToken;
 
         // Act
-        var result = await _usersService.RefreshTokens(refreshToken, CancellationToken.None);
+        var result = await _usersService.RefreshTokens(refreshToken);
 
         // Assert
         Assert.NotNull(result);
@@ -103,18 +103,7 @@ public class UsersServiceTests
         var invalidRefreshToken = "invalid.refresh.token";
 
         // Act & Assert
-        await Assert.ThrowsAsync<AuthenticationException>(() => _usersService.RefreshTokens(invalidRefreshToken, CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task RefreshTokens_ShouldThrowAuthenticationException_WhenUserIdClaimIsInvalidGuid()
-    {
-        // Arrange
-        var invalidId = "notaguid";
-        var refreshToken = TokenHelper.CreateTokensPair(_jwtOptionsMock.Object, invalidId, _loggerMock.Object);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<AuthenticationException>(() => _usersService.RefreshTokens(refreshToken.RefreshToken, CancellationToken.None));
+        await Assert.ThrowsAsync<AuthenticationException>(() => _usersService.RefreshTokens(invalidRefreshToken));
     }
 
     [Fact]

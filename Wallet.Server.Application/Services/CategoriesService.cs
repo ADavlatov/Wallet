@@ -14,7 +14,8 @@ public class CategoriesService(
 {
     public async Task AddCategory(Guid userId, string name, TransactionTypes type, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на добавление категории. UserId: {userId}, Name: {name}, Type: {type}.");
+        logger.LogInformation("Запрос на добавление категории. UserId: {UserId}, Name: {Name}, Type: {Type}.", userId,
+            name, type);
         var user = await usersRepository.GetUserById(userId, cancellationToken);
 
         await categoriesRepository.AddCategory(
@@ -28,32 +29,32 @@ public class CategoriesService(
 
     public async Task<List<Category>> GetCategoriesByUser(Guid userId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение категорий. UserId: {userId}");
+        logger.LogInformation("Запрос на получение категорий. UserId: {UserId}", userId);
         return await categoriesRepository.GetAllCategoriesByUserId(userId, cancellationToken);
     }
 
     public async Task<List<Category>> GetCategoriesByType(Guid userId, TransactionTypes type,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение категорий. UserId: {userId}, Type: {type}");
+        logger.LogInformation("Запрос на получение категорий. UserId: {UserId}, Type: {Type}", userId, type);
         return await categoriesRepository.GetAllCategoriesByTransactionType(userId, type, cancellationToken);
     }
 
     public async Task<Category> GetCategoryByName(Guid userId, string name, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение категории. UserId: {userId}, Name: {name}");
+        logger.LogInformation("Запрос на получение категории. UserId: {UserId}, Name: {Name}", userId, name);
         return await categoriesRepository.GetCategoryByName(userId, name, cancellationToken);
     }
 
     public async Task<Category> GetCategoryById(Guid categoryId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на получение категории. Id: {categoryId}");
+        logger.LogInformation("Запрос на получение категории. Id: {CategoryId}", categoryId);
         return await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
     }
 
     public async Task UpdateCategory(Guid categoryId, string? name, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на обновление категории. Id: {categoryId}, Name: {name}");
+        logger.LogInformation("Запрос на обновление категории. Id: {CategoryId}, Name: {Name}", categoryId, name);
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
 
         category.Name = name ?? category.Name;
@@ -63,7 +64,7 @@ public class CategoriesService(
 
     public async Task DeleteCategory(Guid categoryId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Запрос на удаление категории. Id: {categoryId}");
+        logger.LogInformation("Запрос на удаление категории. Id: {CategoryId}", categoryId);
         var category = await categoriesRepository.GetCategoryById(categoryId, cancellationToken);
         await categoriesRepository.DeleteCategory(category, cancellationToken);
     }

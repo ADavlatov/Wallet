@@ -27,20 +27,30 @@ public class CategoriesController(
     public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на добавление категории. Пользователь: {request.UserId}, название: {request.Name}, тип: {request.Type}.");
+        logger.LogInformation("Начало запроса на добавление категории. " +
+                              "Пользователь: {UserId}, " +
+                              "название: {Name}, " +
+                              "тип: {Type}.", request.UserId, request.Name, request.Type);
 
         var validationResult = await new AddCategoryRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            logger.LogWarning(
-                $"Ошибка валидации при добавлении категории. Пользователь: {request.UserId}, название: {request.Name}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            logger.LogWarning("Ошибка валидации при добавлении категории. " +
+                              "Пользователь: {UserId}, " +
+                              "название: {Name}, " +
+                              "тип: {Type}.", request.UserId, request.Name, request.Type);
+
             return BadRequest(validationResult.Errors);
         }
 
         await categoriesService.AddCategory(request.UserId, request.Name, request.Type, cancellationToken);
+
         logger.LogInformation(
-            $"Запрос на добавление категории завершен. Пользователь: {request.UserId}, название: {request.Name}.");
+            "Запрос на добавление категории завершен. " +
+            "Пользователь: {UserId}, " +
+            "название: {Name}, " +
+            "тип: {Type}.", request.UserId, request.Name, request.Type);
+
         return Ok();
     }
 
@@ -54,11 +64,17 @@ public class CategoriesController(
     public async Task<IActionResult> GetCategoriesByType([FromBody] GetCategoriesByTypeRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на получение категорий по типу. Пользователь: {request.UserId}, тип: {request.Type}.");
-        var result = await categoriesService.GetCategoriesByType(request.UserId, request.Type, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на получение категорий по типу завершен. Пользователь: {request.UserId}, тип: {request.Type}. Получено категорий: {result.Count}.");
+        logger.LogInformation("Начало запроса на получение категорий по типу. " +
+                              "Пользователь: {UserId}, тип: {Type}.", request.UserId, request.Type);
+
+        var result = await categoriesService
+            .GetCategoriesByType(request.UserId, request.Type, cancellationToken);
+
+        logger.LogInformation("Запрос на получение категорий по типу завершен. " +
+                              "Пользователь: {UserId}, " +
+                              "тип: {Type}. " +
+                              "Получено категорий: {Count}.", request.UserId, request.Type, result.Count);
+
         return Ok(result);
     }
 
@@ -72,11 +88,15 @@ public class CategoriesController(
     public async Task<IActionResult> GetCategoriesByUser([FromBody] GetCategoriesByUserRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на получение категорий для пользователя. Пользователь: {request.UserId}.");
-        var result = await categoriesService.GetCategoriesByUser(request.UserId, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на получение категорий для пользователя завершен. Пользователь: {request.UserId}. Получено категорий: {result.Count}.");
+        logger.LogInformation("Начало запроса на получение категорий для пользователя." +
+                              " Пользователь: {UserId}.", request.UserId);
+
+        var result = await categoriesService
+            .GetCategoriesByUser(request.UserId, cancellationToken);
+
+        logger.LogInformation("Запрос на получение категорий для пользователя завершен. " +
+                              "Пользователь: {UserId}. " +
+                              "Получено категорий: {Count}.", request.UserId, result.Count);
         return Ok(result);
     }
 
@@ -90,19 +110,24 @@ public class CategoriesController(
     public async Task<IActionResult> GetCategoryByName([FromBody] GetCategoryByNameRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на получение категории по названию. Пользователь: {request.UserId}, название: {request.Name}.");
+        logger.LogInformation("Начало запроса на получение категории по названию." +
+                              " Пользователь: {UserId}, название: {Name}.", request.UserId, request.Name);
+
         var validationResult = await new GetCategoryByNameRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            logger.LogWarning(
-                $"Ошибка валидации при получении категории по названию. Пользователь: {request.UserId}, название: {request.Name}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            logger.LogWarning("Ошибка валидации при получении категории по названию." +
+                              " Пользователь: {UserId}," +
+                              " название: {Name}.", request.UserId, request.Name);
+
             return BadRequest(validationResult.Errors);
         }
 
-        var result = await categoriesService.GetCategoryByName(request.UserId, request.Name, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на получение категории по названию завершен. Пользователь: {request.UserId}, название: {request.Name}.");
+        var result = await categoriesService
+            .GetCategoryByName(request.UserId, request.Name, cancellationToken);
+
+        logger.LogInformation("Запрос на получение категории по названию завершен." +
+                              " Пользователь: {UserId}, название: {Name}.", request.UserId, request.Name);
         return Ok(result);
     }
 
@@ -115,9 +140,14 @@ public class CategoriesController(
     [HttpGet("{categoryId}")]
     public async Task<IActionResult> GetCategoryById(Guid categoryId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на получение категории по идентификатору. ID: {categoryId}.");
-        var result = await categoriesService.GetCategoryById(categoryId, cancellationToken);
-        logger.LogInformation($"Запрос на получение категории по идентификатору завершен. ID: {categoryId}.");
+        logger.LogInformation("Начало запроса на получение категории по идентификатору. ID: {CategoryId}.", categoryId);
+
+        var result = await categoriesService
+            .GetCategoryById(categoryId, cancellationToken);
+
+        logger.LogInformation("Запрос на получение категории по идентификатору завершен. " +
+                              "ID: {CategoryId}.", categoryId);
+
         return Ok(result);
     }
 
@@ -131,19 +161,22 @@ public class CategoriesController(
     public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest request,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            $"Начало запроса на обновление категории. ID: {request.CategoryId}, новое название: {request.Name}.");
+        logger.LogInformation("Начало запроса на обновление категории. " +
+                              "ID: {CategoryId}, новое название: {Name}.", request.CategoryId, request.Name);
+
         var validationResult = await new UpdateCategoryRequestValidator().ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            logger.LogWarning(
-                $"Ошибка валидации при обновлении категории. ID: {request.CategoryId}, новое название: {request.Name}. Ошибки: {string.Join(", ", validationResult.Errors)}");
+            logger.LogWarning("Ошибка валидации при обновлении категории. " +
+                              "ID: {CategoryId}, новое название: {Name}.", request.CategoryId, request.Name);
+
             return BadRequest(validationResult.Errors);
         }
 
         await categoriesService.UpdateCategory(request.CategoryId, request.Name, cancellationToken);
-        logger.LogInformation(
-            $"Запрос на обновление категории завершен. ID: {request.CategoryId}, новое название: {request.Name}.");
+
+        logger.LogInformation("Запрос на обновление категории завершен." +
+                              " ID: {CategoryId}, новое название: {Name}.", request.CategoryId, request.Name);
         return Ok();
     }
 
@@ -156,9 +189,9 @@ public class CategoriesController(
     [HttpDelete("{categoryId}")]
     public async Task<IActionResult> DeleteCategory(Guid categoryId, CancellationToken cancellationToken)
     {
-        logger.LogInformation($"Начало запроса на удаление категории. ID: {categoryId}.");
+        logger.LogInformation("Начало запроса на удаление категории. ID: {CategoryId}.", categoryId);
         await categoriesService.DeleteCategory(categoryId, cancellationToken);
-        logger.LogInformation($"Запрос на удаление категории завершен. ID: {categoryId}.");
+        logger.LogInformation("Запрос на удаление категории завершен. ID: {categoryId}.", categoryId);
         return Ok();
     }
 }

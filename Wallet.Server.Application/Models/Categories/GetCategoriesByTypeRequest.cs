@@ -2,4 +2,6 @@
 
 namespace Wallet.Server.Application.Models.Categories;
 
-public record GetCategoriesByTypeRequest(Guid UserId, TransactionTypes Type);
+public record GetCategoriesByTypeRequest(
+    Guid UserId, 
+    TransactionTypes Type);

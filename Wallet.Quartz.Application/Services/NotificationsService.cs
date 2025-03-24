@@ -6,7 +6,7 @@ namespace Wallet.Quartz.Application.Services;
 
 public class NotificationsService(
     INotificationsRepository notificationsRepository,
-    QuartzNotificationScheduler notificationScheduler) : INotificationsService
+    INotificationsScheduler notificationScheduler) : INotificationsService
 {
     public async Task<Notification> ScheduleNotification(Guid id, long telegramUserId, string name, string description,
         DateTime notificationDateTime, CancellationToken cancellationToken)
