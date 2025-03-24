@@ -1,23 +1,28 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
+﻿FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["Wallet.Server.Presentation/Wallet.Server.Presentation.csproj", "Wallet.Server.Presentation/"]
-RUN dotnet restore "Wallet.Server.Presentation/Wallet.Server.Presentation.csproj"
-COPY . .
-WORKDIR "/src/Wallet.Server.Presentation"
-RUN dotnet build "Wallet.Server.Presentation.csproj" -c $BUILD_CONFIGURATION -o /app/build
+COPY Wallet.Server.Presentation/Wallet.Server.Presentation.csproj ./Wallet.Server.Presentation/
+RUN dotnet restore Wallet.Server.Presentation/Wallet.Server.Presentation.csproj
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Wallet.Server.Presentation.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+COPY Wallet.Server.Application/Wallet.Server.Application.csproj ./Wallet.Server.Application/
+RUN dotnet restore Wallet.Server.Application/Wallet.Server.Application.csproj
 
-FROM base AS final
+COPY Wallet.Server.Infrastructure/Wallet.Server.Infrastructure.csproj ./Wallet.Server.Infrastructure/
+RUN dotnet restore Wallet.Server.Infrastructure/Wallet.Server.Infrastructure.csproj
+
+COPY Wallet.Server.Domain/Wallet.Server.Domain.csproj ./Wallet.Server.Domain/
+RUN dotnet restore ./Wallet.Server.Domain/Wallet.Server.Domain.csproj
+
+COPY Wallet.Server.Presentation/. ./Wallet.Server.Presentation/
+COPY Wallet.Server.Application/. ./Wallet.Server.Application/
+COPY Wallet.Server.Infrastructure/. ./Wallet.Server.Infrastructure/
+COPY Wallet.Server.Domain/. ./Wallet.Server.Domain/
+
+WORKDIR /app/Wallet.Server.Presentation
+RUN dotnet publish -c Release -o /app/out
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build-env /app/out ./
 ENTRYPOINT ["dotnet", "Wallet.Server.Presentation.dll"]
+EXPOSE 80

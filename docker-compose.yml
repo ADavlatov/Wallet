@@ -1,42 +1,30 @@
 ﻿services:
-  wallet.client.bot:
-    image: wallet.client.bot
-    build:
-      context: .
-      dockerfile: Wallet.Client.Bot/Dockerfile
+  quartz:
+    image: quartz
+    ports:
+      - "5230:80"
+    networks:
+      - wallet-network
 
-  wallet.server.application:
-    image: wallet.server.application
-    build:
-      context: .
-      dockerfile: Wallet.Server.Application/Dockerfile
+  bot:
+    image: bot
+    networks:
+      - wallet-network
 
-  wallet.server.domain:
-    image: wallet.server.domain
-    build:
-      context: .
-      dockerfile: Wallet.Server.Domain/Dockerfile
+  server:
+    image: server
+    ports:
+      - "5221:80"
+    networks:
+      - wallet-network
 
-  wallet.server.infrastructure:
-    image: wallet.server.infrastructure
-    build:
-      context: .
-      dockerfile: Wallet.Server.Infrastructure/Dockerfile
-
-  wallet.server.infrastructure-1:
-    image: wallet.server.infrastructure-1
-    build:
-      context: .
-      dockerfile: Wallet.Server.Infrastructure/Dockerfile
-
-  wallet.server.presentation:
-    image: wallet.server.presentation
-    build:
-      context: .
-      dockerfile: Wallet.Server.Presentation/Dockerfile
-
-  wallet.client.web:
-    image: wallet.client.web
-    build:
-      context: .
-      dockerfile: Wallet.Client.Web/Dockerfile
+  web:
+    image: web
+    ports:
+      - "5162:80"
+    networks:
+      - wallet-network
+        
+networks:
+  wallet-network:
+    driver: bridge
